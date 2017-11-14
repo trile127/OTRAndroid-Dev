@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">"Elliptic Key Cryptography Demo"</string>
+
+  <string name="a1">Alice: Generates Random Key</string>
+  <string name="a2">Alice: Computes Private Key from Random Key</string>
+  <string name="a3">Alice: Computes Public Key from Private Key</string>
+
+  <string name="b1">Bob: Generates Random Key</string>
+  <string name="b2">Bob: Computes Private Key from Random Key</string>
+  <string name="b3">Bob: Computes Public Key from Private Key</string>
+
+  <string name="a4">Alice: Computes shared Key with her private and Bobs Public Keys</string>
+
+  <string name="b4">Bob: Computes shared Key with his private and Alices Public Keys"</string>
+</resources>
