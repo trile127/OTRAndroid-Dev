@@ -26,15 +26,13 @@ namespace OTRAndroid
 		
 		public static void UpdateIdValues()
 		{
-			global::CEXEngineAndroid.Resource.String.ApplicationName = global::OTRAndroid.Resource.String.ApplicationName;
-			global::CEXEngineAndroid.Resource.String.Hello = global::OTRAndroid.Resource.String.Hello;
 		}
 		
 		public partial class Array
 		{
 			
-			// aapt resource value: 0x7f070000
-			public const int androidcolors = 2131165184;
+			// aapt resource value: 0x7f060000
+			public const int androidcolors = 2131099648;
 			
 			static Array()
 			{
@@ -62,44 +60,44 @@ namespace OTRAndroid
 		public partial class Color
 		{
 			
-			// aapt resource value: 0x7f060000
-			public const int black = 2131099648;
+			// aapt resource value: 0x7f050000
+			public const int black = 2131034112;
 			
-			// aapt resource value: 0x7f060003
-			public const int blue = 2131099651;
+			// aapt resource value: 0x7f050003
+			public const int blue = 2131034115;
 			
-			// aapt resource value: 0x7f060002
-			public const int cyan = 2131099650;
+			// aapt resource value: 0x7f050002
+			public const int cyan = 2131034114;
 			
-			// aapt resource value: 0x7f060008
-			public const int darkblue = 2131099656;
+			// aapt resource value: 0x7f050008
+			public const int darkblue = 2131034120;
 			
-			// aapt resource value: 0x7f06000a
-			public const int darkgreen = 2131099658;
+			// aapt resource value: 0x7f05000a
+			public const int darkgreen = 2131034122;
 			
-			// aapt resource value: 0x7f06000b
-			public const int darkorange = 2131099659;
+			// aapt resource value: 0x7f05000b
+			public const int darkorange = 2131034123;
 			
-			// aapt resource value: 0x7f060009
-			public const int darkpurple = 2131099657;
+			// aapt resource value: 0x7f050009
+			public const int darkpurple = 2131034121;
 			
-			// aapt resource value: 0x7f06000c
-			public const int darkred = 2131099660;
+			// aapt resource value: 0x7f05000c
+			public const int darkred = 2131034124;
 			
-			// aapt resource value: 0x7f060005
-			public const int green = 2131099653;
+			// aapt resource value: 0x7f050005
+			public const int green = 2131034117;
 			
-			// aapt resource value: 0x7f060006
-			public const int orange = 2131099654;
+			// aapt resource value: 0x7f050006
+			public const int orange = 2131034118;
 			
-			// aapt resource value: 0x7f060004
-			public const int purple = 2131099652;
+			// aapt resource value: 0x7f050004
+			public const int purple = 2131034116;
 			
-			// aapt resource value: 0x7f060007
-			public const int red = 2131099655;
+			// aapt resource value: 0x7f050007
+			public const int red = 2131034119;
 			
-			// aapt resource value: 0x7f060001
-			public const int yellow = 2131099649;
+			// aapt resource value: 0x7f050001
+			public const int yellow = 2131034113;
 			
 			static Color()
 			{
@@ -226,38 +224,32 @@ namespace OTRAndroid
 		public partial class String
 		{
 			
-			// aapt resource value: 0x7f050001
-			public const int ApplicationName = 2131034113;
+			// aapt resource value: 0x7f070001
+			public const int a1 = 2131165185;
 			
-			// aapt resource value: 0x7f050000
-			public const int Hello = 2131034112;
+			// aapt resource value: 0x7f070002
+			public const int a2 = 2131165186;
 			
-			// aapt resource value: 0x7f050003
-			public const int a1 = 2131034115;
+			// aapt resource value: 0x7f070003
+			public const int a3 = 2131165187;
 			
-			// aapt resource value: 0x7f050004
-			public const int a2 = 2131034116;
+			// aapt resource value: 0x7f070007
+			public const int a4 = 2131165191;
 			
-			// aapt resource value: 0x7f050005
-			public const int a3 = 2131034117;
+			// aapt resource value: 0x7f070000
+			public const int app_name = 2131165184;
 			
-			// aapt resource value: 0x7f050009
-			public const int a4 = 2131034121;
+			// aapt resource value: 0x7f070004
+			public const int b1 = 2131165188;
 			
-			// aapt resource value: 0x7f050002
-			public const int app_name = 2131034114;
+			// aapt resource value: 0x7f070005
+			public const int b2 = 2131165189;
 			
-			// aapt resource value: 0x7f050006
-			public const int b1 = 2131034118;
+			// aapt resource value: 0x7f070006
+			public const int b3 = 2131165190;
 			
-			// aapt resource value: 0x7f050007
-			public const int b2 = 2131034119;
-			
-			// aapt resource value: 0x7f050008
-			public const int b3 = 2131034120;
-			
-			// aapt resource value: 0x7f05000a
-			public const int b4 = 2131034122;
+			// aapt resource value: 0x7f070008
+			public const int b4 = 2131165192;
 			
 			static String()
 			{

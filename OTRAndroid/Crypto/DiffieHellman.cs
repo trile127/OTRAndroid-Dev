@@ -49,7 +49,7 @@ namespace OTRAndroid.Crypto
         /**
     * Checks to see if the requested value is prime.
     */
-        public  Boolean isPrime(int inputNum)
+        public Boolean isPrime(int inputNum)
         {
             if (inputNum <= 3 || inputNum % 2 == 0)
                 return inputNum == 2 || inputNum == 3; //this returns false if number is <=1 & true if number = 2 or 3
@@ -77,7 +77,7 @@ namespace OTRAndroid.Crypto
         //        int num = r.Next();
 
         //    }
-                
+
 
 
         // //           // Writing random number into io.Reader object r in order to pass it to rand.Prime
@@ -93,11 +93,12 @@ namespace OTRAndroid.Crypto
         // //       }
         // //       }
         // //       randomPrimeInt, _ = strconv.Atoi(randomPrime.String())
-	       // //fmt.Println("********** Generate initial Diffie Hellman Parameters **********")
-	       // //fmt.Printf("Randomly Generated Prime: %d\n", randomPrimeInt)
-	       // //return randomPrimeInt
+        // //fmt.Println("********** Generate initial Diffie Hellman Parameters **********")
+        // //fmt.Printf("Randomly Generated Prime: %d\n", randomPrimeInt)
+        // //return randomPrimeInt
         // //       //return randomPrime
         //    }
 
-    
+
+    }
 }
