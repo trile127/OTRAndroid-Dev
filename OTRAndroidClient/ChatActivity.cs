@@ -10,22 +10,33 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Microsoft.AspNet.SignalR.Client;
+using Android;
+using SignalRChat;
+using System.Threading.Tasks;
 
 namespace OTRAndroidClient
 {
+    public class PrivateChatMessage
+    {
+        public string userName { get; set; }
+        public string message { get; set; }
+    }
+
     [Activity(Label = "ChatActivity")]
     public class ChatActivity : Activity
     {
-        String userName;
-        String email;
+        String UserName;
+        String Email;
+        int userID;
         List<string> myListItems;
         ListView myListView;
+        List<ChatUserDetail> allUsers;
+        List<ChatMessageDetail> messages;
 
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
             SetContentView(Resource.Layout.Chat);
-
             myListView = FindViewById<ListView>(Resource.Id.myListView);
 
             myListItems = new List<string>();
@@ -37,14 +48,114 @@ namespace OTRAndroidClient
 
             myListView.ItemClick += MyListView_ItemClick;
 
-            //List<Player> players = Player.GetPlayers();
-            //this.ListAdapter = new ButtonAdapter(this, players);
+
+            Bundle bundler = Intent.GetBundleExtra("bundle");
+            UserName = bundler.GetString("UserName");
+            Email = bundler.GetString("Email");
+
+            // Connect to the server
+            var hubConnection = new HubConnection("http://signalrchat.azurewebsites.net/");
+
+            // Create a proxy to the 'ChatHub' SignalR Hub
+            var chatHubProxy = hubConnection.CreateHubProxy("ChatHub");
+
+            chatHubProxy.On<int, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (userID, UserName, allUsers, messages) =>
+            {
+                Email = bundler.GetString("Email");
+                for (int i = 0; i < allUsers.Count; i++)
+                {
+                    AddUser(chatHubProxy, allUsers[i].ConnectionID, allUsers[i].UserName, allUsers[i].EmailID);
+                };
+                // Add Existing Messages
+                for (int i = 0; i < messages.Count; i++)
+                {
+                    AddMessage(messages[i].UserName, messages[i].Message);
+                };
+            }
+            );
+
+
+
+            //Start the connection
+            hubConnection.Start();
+
+            // Invoke the 'UpdateNick' method on the server
+            chatHubProxy.Invoke("Connect", UserName, Email);
+
         }
 
-        void MyListView_ItemClick (object sender, AdapterView.ItemClickEventArgs e)
+     
+            // Add User
+            public void AddUser(IHubProxy chatHub, string id, string name, string email)
         {
-            //if (myListItems [e.Position])
-            SetContentView(Resource.Layout.Chat);
+            myListItems.Add(name);
+
+            // var userId = $('#hdId').val();
+            // var userEmail = $('#hdEmailID').val();
+            // var code = "";
+
+            // if (userEmail == email && $('.loginUser').length == 0) {
+            //     code = $('<div class="loginUser">' + name + "</div>");
+            // }
+            // else {
+            //     code = $('<a id="' + id + '" class="user" >' + name + '<a>');
+            //     $(code).click(function () {
+            //         var id = $(this).attr('id');
+            //         if (userEmail != email) {
+            //             OpenPrivateChatWindow(chatHub, id, name, userEmail, email);
+            //         }
+            //     });
+            // }
+
+            // $("#divusers").append(code);
+        }
+
+        // Add Message
+        public void AddMessage(string userName, string message)
+        {
+            // $('#divChatWindow').append('<div class="message"><span class="userName">' + userName + '</span>: ' + message + '</div>');
+
+            // var height = $('#divChatWindow')[0].scrollHeight;
+            // $('#divChatWindow').scrollTop(height);
+        }
+
+
+        // void registerClientMethods(var chatHub) {
+        //     // Calls when user successfully logged in
+        //     chatHub.client.onConnected = function (id, userName, allUsers, messages) {
+        //         setScreen(true);
+
+        //         $('#hdId').val(id);
+        //         $('#hdUserName').val(userName);
+        //         $('#spanUser').html(userName);
+
+        //         // Add All Users
+        //         for (i = 0; i < allUsers.length; i++) {
+        //             AddUser(chatHub, allUsers[i].ConnectionId, allUsers[i].UserName, allUsers[i].EmailID);
+        //         }
+
+        //         // Add Existing Messages
+        //         for (i = 0; i < messages.length; i++) {
+        //             AddMessage(messages[i].UserName, messages[i].Message);
+        //         }
+
+        //         $('.login').css('display', 'none');
+        //     }
+
+        public void MyListView_ItemClick(object sender, AdapterView.ItemClickEventArgs e)
+        {
+
+            for (i = 0; i < allUsers.length; i++)
+            {
+
+                if (myListItems[e.Position] == allUsers[i].UserName)
+                {
+
+                }
+
+            }
+            if (myListItems[e.Position] == )
+                SetContentView(Resource.Layout.Chat);
 
 
         }
