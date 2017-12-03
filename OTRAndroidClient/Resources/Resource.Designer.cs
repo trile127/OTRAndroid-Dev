@@ -26,6 +26,8 @@ namespace OTRAndroidClient
 		
 		public static void UpdateIdValues()
 		{
+			global::CEXEngineAndroid.Resource.String.ApplicationName = global::OTRAndroidClient.Resource.String.ApplicationName;
+			global::CEXEngineAndroid.Resource.String.Hello = global::OTRAndroidClient.Resource.String.Hello;
 		}
 		
 		public partial class Animation
@@ -3282,6 +3284,12 @@ namespace OTRAndroidClient
 		public partial class String
 		{
 			
+			// aapt resource value: 0x7f08002a
+			public const int ApplicationName = 2131230762;
+			
+			// aapt resource value: 0x7f080029
+			public const int Hello = 2131230761;
+			
 			// aapt resource value: 0x7f080000
 			public const int abc_action_bar_home_description = 2131230720;
 			
@@ -3375,8 +3383,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f080012
 			public const int abc_toolbar_collapse_description = 2131230738;
 			
-			// aapt resource value: 0x7f080029
-			public const int app_name = 2131230761;
+			// aapt resource value: 0x7f08002b
+			public const int app_name = 2131230763;
 			
 			// aapt resource value: 0x7f080021
 			public const int appbar_scrolling_view_behavior = 2131230753;
@@ -3387,8 +3395,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f080023
 			public const int character_counter_pattern = 2131230755;
 			
-			// aapt resource value: 0x7f08002a
-			public const int login = 2131230762;
+			// aapt resource value: 0x7f08002c
+			public const int login = 2131230764;
 			
 			// aapt resource value: 0x7f080024
 			public const int password_toggle_content_description = 2131230756;

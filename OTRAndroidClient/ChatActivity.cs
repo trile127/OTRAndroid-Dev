@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Web;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -11,8 +11,28 @@ using Android.Views;
 using Android.Widget;
 using Microsoft.AspNet.SignalR.Client;
 using Android;
-using SignalRChat;
+
+using EntityFrameworkWithXamarin.Core;
 using System.Threading.Tasks;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithmetic;
+
+
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Interfaces;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Arithmetic;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Polynomial;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Curve;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Encode;
+
+using VTDev.Libraries.CEXEngine.Crypto.Common;
+using VTDev.Libraries.CEXEngine.Crypto.Enumeration;
+using VTDev.Libraries.CEXEngine.Crypto.Prng;
+using VTDev.Libraries.CEXEngine.CryptoException;
+
+using System.IO;
+using VTDev.Libraries.CEXEngine.Utility;
 
 namespace OTRAndroidClient
 {
@@ -33,6 +53,12 @@ namespace OTRAndroidClient
         List<ChatUserDetail> allUsers;
         List<ChatMessageDetail> messages;
 
+        // Connect to the server
+        HubConnection hubConnection;
+
+        // Create a proxy to the 'ChatHub' SignalR Hub
+        IHubProxy chatHubProxy;
+
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
@@ -48,45 +74,84 @@ namespace OTRAndroidClient
 
             myListView.ItemClick += MyListView_ItemClick;
 
+            InitializeNTRU();
+            InitializePKE();
 
             Bundle bundler = Intent.GetBundleExtra("bundle");
             UserName = bundler.GetString("UserName");
             Email = bundler.GetString("Email");
 
             // Connect to the server
-            var hubConnection = new HubConnection("http://signalrchat.azurewebsites.net/");
+            hubConnection = new HubConnection("http://signalrchat.azurewebsites.net/");
 
             // Create a proxy to the 'ChatHub' SignalR Hub
-            var chatHubProxy = hubConnection.CreateHubProxy("ChatHub");
+            chatHubProxy = hubConnection.CreateHubProxy("ChatHub");
 
-            chatHubProxy.On<int, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (userID, UserName, allUsers, messages) =>
-            {
-                Email = bundler.GetString("Email");
-                for (int i = 0; i < allUsers.Count; i++)
-                {
-                    AddUser(chatHubProxy, allUsers[i].ConnectionID, allUsers[i].UserName, allUsers[i].EmailID);
-                };
-                // Add Existing Messages
-                for (int i = 0; i < messages.Count; i++)
-                {
-                    AddMessage(messages[i].UserName, messages[i].Message);
-                };
-            }
-            );
+            //chatHubProxy.On<int, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (userID, UserName, allUsers, messages) =>
+            //{
+            //    Email = bundler.GetString("Email");
+            //    for (int i = 0; i < allUsers.Count; i++)
+            //    {
+            //        AddUser(chatHubProxy, allUsers[i].ConnectionID, allUsers[i].UserName, allUsers[i].EmailID);
+            //    };
+            //    // Add Existing Messages
+            //    for (int i = 0; i < messages.Count; i++)
+            //    {
+            //        AddMessage(messages[i].UserName, messages[i].Message);
+            //    };
+            //}
+            //);
 
 
+            Connect();
+            ////Start the connection
+            //await hubConnection.Start();
 
-            //Start the connection
-            hubConnection.Start();
-
-            // Invoke the 'UpdateNick' method on the server
-            chatHubProxy.Invoke("Connect", UserName, Email);
+            //// Invoke the 'UpdateNick' method on the server
+            //await chatHubProxy.Invoke("Connect", UserName, Email);
 
         }
 
-     
-            // Add User
-            public void AddUser(IHubProxy chatHub, string id, string name, string email)
+        public async Task Connect()
+        {
+            try
+            {
+                await hubConnection.Start();
+                chatHubProxy.On<int, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (userID, UserName, allUsers, messages) =>
+                {
+
+                    for (int i = 0; i < allUsers.Count; i++)
+                    {
+                        AddUser(chatHubProxy, allUsers[i].ConnectionID, allUsers[i].UserName, allUsers[i].EmailID);
+                    };
+                    // Add Existing Messages
+                    for (int i = 0; i < messages.Count; i++)
+                    {
+                        AddMessage(messages[i].UserName, messages[i].Message);
+                    };
+                }
+                );
+
+                if (hubConnection.State == ConnectionState.Connected)
+                {
+                    await chatHubProxy.Invoke("Connect", UserName, Email);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.ToString());
+            }
+
+           
+           
+        }
+
+
+
+        // Add User
+        public void AddUser(IHubProxy chatHub, string id, string name, string email)
         {
             myListItems.Add(name);
 
@@ -145,7 +210,7 @@ namespace OTRAndroidClient
         public void MyListView_ItemClick(object sender, AdapterView.ItemClickEventArgs e)
         {
 
-            for (i = 0; i < allUsers.length; i++)
+            for (int i = 0; i < allUsers.Count; i++)
             {
 
                 if (myListItems[e.Position] == allUsers[i].UserName)
@@ -154,8 +219,7 @@ namespace OTRAndroidClient
                 }
 
             }
-            if (myListItems[e.Position] == )
-                SetContentView(Resource.Layout.Chat);
+            SetContentView(Resource.Layout.Chat);
 
 
         }
@@ -180,7 +244,151 @@ namespace OTRAndroidClient
         //    userName = bundler.GetString("UserName");
         //    email = bundler.GetString("Email");
 
+        public void InitializeNTRU()
+        {
 
+
+            NTRUParameters prm = NTRUParamSets.APR2011743FAST;
+            IAsymmetricKeyPair keyPair;
+            byte[] enc, dec;
+            byte[] data = new byte[64];
+
+            // generate a key pair
+            using (NTRUKeyGenerator gen = new NTRUKeyGenerator(prm))
+            {
+
+                keyPair = gen.GenerateKeyPair();
+            }
+
+
+            // encrypt a message
+            using (NTRUEncrypt ntru = new NTRUEncrypt(prm))
+            {
+                // initialize with public key for encryption
+                ntru.Initialize(keyPair.PublicKey);
+                // encrypt using public key
+                enc = ntru.Encrypt(data);
+            }
+
+            // decrypt a message
+            using (NTRUEncrypt ntru = new NTRUEncrypt(prm))
+            {
+                // initialize with both keys for decryption
+                ntru.Initialize(keyPair);
+                // decrypt using key pair
+                dec = ntru.Decrypt(enc);
+            }
+        }
+
+
+        public void InitializePKE()
+        {
+            int M = 512;
+            uint[] pubA = new uint[M];
+            uint[] pubP = new uint[M];
+            uint[] priR2 = new uint[M];
+            RLWEParameters parameterTest = RLWEParamSets.RLWEN512Q12289;
+            RLWEKeyGenerator genTest = new RLWEKeyGenerator(parameterTest);
+            NTT512 ntt512Test = new NTT512(genTest.m_rndEngine);
+
+            int r = (int)ntt512Test.GetRand();
+            ntt512Test.KeyGen(pubA, pubP, priR2, r);
+
+
+            RLWEPrivateKey pri = new RLWEPrivateKey(M, ntt512Test.Convert32To8(priR2));
+            RLWEPublicKey pub = new RLWEPublicKey(M, ntt512Test.Convert32To8(pubA), ntt512Test.Convert32To8(pubP));
+
+
+
+            uint[] pubA2 = new uint[M];
+            uint[] pubP2 = new uint[M];
+            uint[] priR22 = new uint[M];
+            ntt512Test.KeyGen(pubA2, pubP2, priR22, r);
+
+
+            RLWEPrivateKey pri2 = new RLWEPrivateKey(M, ntt512Test.Convert32To8(priR2));
+            RLWEPublicKey pub2 = new RLWEPublicKey(M, ntt512Test.Convert32To8(pubA), ntt512Test.Convert32To8(pubP));
+
+            bool Privtester = pri2.Equals(pri);
+            bool pubTest = pub2.Equals(pub);
+
+            RLWEKeyPair keyPair = new RLWEKeyPair(pub, pri);
+            // convert a key to a byte array
+            byte[] rlwekeyArray = keyPair.PublicKey.ToBytes();
+            // deserialize a key
+            RLWEPublicKey rlwePubKey = new RLWEPublicKey(rlwekeyArray);
+
+
+            //Initiator generate key pair
+            // Public Key -- > Sends along with Digital signature of private key
+            // Sends hash of private key
+
+            //
+
+            //// use a pre-defined parameter set
+
+            // Initiator
+            RLWEParameters ps = RLWEParamSets.RLWEN512Q12289;
+            byte[] bytePS = ps.ToBytes();
+            // initialze the key generator
+            RLWEKeyGenerator gen = new RLWEKeyGenerator(ps);
+            // create the key-pair
+            IAsymmetricKeyPair kp = gen.GenerateKeyPair();
+
+            // convert a key to a byte array
+            byte[] keyArray = kp.PublicKey.ToBytes();
+            // deserialize a key
+            RLWEPublicKey npubk = new RLWEPublicKey(keyArray);
+
+
+            //Receiver:
+            RLWEParameters test = new RLWEParameters(bytePS);
+            //RLWEParameters test = RLWEParameters.From(byteParams);
+            bool tester = test.Equals(ps);
+
+            RLWEKeyGenerator Bobgen = new RLWEKeyGenerator(test);
+            // create the key-pair
+            IAsymmetricKeyPair Bobps = Bobgen.GenerateKeyPair();
+
+            //// convert a key to a stream
+            //MemoryStream keyStream = kp.PrivateKey.ToStream(); 
+            //// deserialize key
+            //RLWEPrivateKey nprik = new RLWEPrivateKey(keyStream);
+
+            byte[] toBytes = Encoding.ASCII.GetBytes("Test");
+            byte[] enc, dec;
+            // encrypt an array
+            using (RLWEEncrypt cipher = new RLWEEncrypt(ps))
+            {
+                cipher.Initialize(Bobps.PublicKey);
+                enc = cipher.Encrypt(toBytes);
+            }
+
+            // decrypt the cipher text
+            using (RLWEEncrypt cipher = new RLWEEncrypt(test))
+            {
+                cipher.Initialize(Bobps.PrivateKey);
+                dec = cipher.Decrypt(enc);
+            }
+            string test1 = Encoding.ASCII.GetString(toBytes);
+            string test2 = Encoding.ASCII.GetString(enc);
+            string test3 = Encoding.ASCII.GetString(dec);
+            myListItems.Add(test1);
+            myListItems.Add(test2);
+            myListItems.Add(test3);
+
+
+
+
+            //int intValue = 512;
+            //byte[] intBytes = BitConverter.GetBytes(intValue);
+            //if (BitConverter.IsLittleEndian)
+            //    Array.Reverse(intBytes);
+            //byte[] result = intBytes;
+
+
+   
+        }
 
 
 

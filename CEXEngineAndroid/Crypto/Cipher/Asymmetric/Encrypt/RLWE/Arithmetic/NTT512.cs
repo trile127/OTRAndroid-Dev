@@ -8,43 +8,43 @@ using VTDev.Libraries.CEXEngine.Utility;
 
 namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithmetic
 {
-    internal sealed class NTT512
+    public class NTT512
     {
         #region Constants
-        internal const int HAMMING_TABLE_SIZE = 10;
-        internal const int PMAT_MAX_COL = 106;
-        internal const int KN_DISTANCE1_MASK = 15;
-        internal const int KN_DISTANCE2_MASK = 15;
-        internal const int MODULUS = 12289;
-        internal const int M = 512;
-        internal const int QBY2 = 6144;
-        internal const int QBY4 = 3072;
-        internal const int QBY4_TIMES3 = 9216;
-        internal const int FWD_CONST1 = 5559;
-        internal const int FWD_CONST2 = 6843;
-        internal const int INVCONST1 = 3778;
-        internal const int INVCONST2 = 10810;
-        internal const int INVCONST3 = 9087;
-        internal const int SCALING = 12265;
-        internal const int NEW_RND_BOTTOM = 1;
-        internal const int NEW_RND_LARGE = 32 - 9;
-        internal const int NEW_RND_MID = 32 - 6;
+        public const int HAMMING_TABLE_SIZE = 10;
+        public const int PMAT_MAX_COL = 106;
+        public const int KN_DISTANCE1_MASK = 15;
+        public const int KN_DISTANCE2_MASK = 15;
+        public const int MODULUS = 12289;
+        public const int M = 512;
+        public const int QBY2 = 6144;
+        public const int QBY4 = 3072;
+        public const int QBY4_TIMES3 = 9216;
+        public const int FWD_CONST1 = 5559;
+        public const int FWD_CONST2 = 6843;
+        public const int INVCONST1 = 3778;
+        public const int INVCONST2 = 10810;
+        public const int INVCONST3 = 9087;
+        public const int SCALING = 12265;
+        public const int NEW_RND_BOTTOM = 1;
+        public const int NEW_RND_LARGE = 32 - 9;
+        public const int NEW_RND_MID = 32 - 6;
         #endregion
 
         #region Fields
-        private IRandom m_secRand;
+        public IRandom m_secRand;
 
-        private static ushort[] m_primRtOmega = 
+        public static ushort[] m_primRtOmega = 
         { 
             12288, 1479, 8246, 4134, 6429, 1351, 7678, 7935, 5559 
         };
 
-        private static ushort[] m_invPrimeRt = 
+        public static ushort[] m_invPrimeRt = 
         {
             12288, 10810, 7143, 10984, 3542, 4821, 1170, 5755
         };
 
-        private static byte[] m_T1 =
+        public static byte[] m_T1 =
         {
             3,4,1,1,2,8,6,11,3,0,1,7,2,5,5,11,3,4,1,10,2,7,6,6,3,0,1,2,2,4,5,17,3,4,1,1,2,8,6,8,3,0,1,4,2,5,5,4,3,4,1,9,
 	        2,7,6,2,3,0,1,0,2,4,5,21,3,4,1,1,2,8,6,9,3,0,1,7,2,5,5,9,3,4,1,10,2,7,6,3,3,0,1,2,2,4,5,19,3,4,1,1,2,8,6,7,3,
@@ -53,7 +53,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
 	        10,2,7,6,3,3,0,1,2,2,4,5,20,3,4,1,1,2,8,6,7,3,0,1,4,2,5,5,16,3,4,1,9,2,7,6,12,3,0,1,0,2,4,5,24
         };
 
-        private static byte[] m_T2 = 
+        public static byte[] m_T2 = 
         {
             14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,14,12,9,8,9,
 	        8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,9,8,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,
@@ -64,7 +64,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
 	        32,14,40,2,36,10,44
         };
 
-        private static int[][] m_pMatrix =
+        public static int[][] m_pMatrix =
         {
             new int[] {0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,1,1,1,1,1,0,1,1,1,1,0,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,1,1,0,0,1,1,1,0,0,1,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0,0,1,1,1,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,1,1},
             new int[] {0,0,1,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,1,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,0,1,1,0,0,0,1,0,0,0,0,0,1,1,1,0,0,1,0,1,0,1},
@@ -145,7 +145,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
         /// Decrypt a ciphertext
         /// </summary>
         /// 
-        /// <param name="PrivateKey">The RLWE private key</param>
+        /// <param name="PrivateKey">The RLWE public key</param>
         /// <param name="Message">The encrypted message</param>
         /// 
         /// <returns>The decrypted message</returns>
@@ -207,7 +207,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
         #endregion
 
         #region Private Methods
-        private void ArrangeFinal(uint[] Input, uint[] Output)
+        public void ArrangeFinal(uint[] Input, uint[] Output)
         {
             int ctr;
             for (ctr = 0; ctr < M / 2; ctr += 2)
@@ -223,7 +223,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private void BitReverse(uint[] A)
+        public void BitReverse(uint[] A)
         {
             int b1, b2, b3, b4, b5, b6, b7, b8, b9, swpIndex;
             int q1, r1, q2, r2;
@@ -270,7 +270,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private uint Clz(uint A)
+        public uint Clz(uint A)
         {
             for (int i = 0; i < 32; i++)
             {
@@ -281,7 +281,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return 32;
         }
 
-        private byte[] Convert32To8(uint[] Source)
+        public byte[] Convert32To8(uint[] Source)
         {
             byte[] data = new byte[Source.Length * 2];
 
@@ -291,7 +291,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return data;
         }
 
-        private uint[] Convert8To32(byte[] Source)
+        public uint[] Convert8To32(byte[] Source)
         {
             uint[] data = new uint[Source.Length / 2];
 
@@ -301,7 +301,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return data;
         }
 
-        private byte[] Decode(uint[] A)
+        public byte[] Decode(uint[] A)
         {
             byte[] r = new byte[A.Length / 8];
             for (int i = 0, j = 0; i < r.Length; i++, j += 8)
@@ -319,7 +319,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return r;
         }
 
-        private uint[] Encode(byte[] A)
+        public uint[] Encode(byte[] A)
         {
             uint[] r = new uint[A.Length * 8];
             for (int i = 0, j = 0; i < A.Length; i++, j += 8)
@@ -336,7 +336,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return r;
         }
 
-        private void FwdNTT(uint[] A)
+        public void FwdNTT(uint[] A)
         {
             int i, j, k, m;
             int u1, t1, u2, t2;
@@ -384,7 +384,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private void GenA(uint[] A)
+        public void GenA(uint[] A)
         {
             int i, r;
 
@@ -397,13 +397,32 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             FwdNTT(A);
         }
 
-        private void GenR1(uint[] R1)
+        public void GenA(uint[] A, int r)
+        {
+            int i;
+
+            for (i = 0; i < M / 2; i++)
+            {
+                r = (int)GetRand();
+                A[2 * i] = Mod(r & 0xFFFF);
+                A[2 * i + 1] = Mod(IntUtils.URShift(r, 16));
+            }
+            FwdNTT(A);
+        }
+
+        public void GenR1(uint[] R1)
         {
             KnuthYao(R1);
             FwdNTT(R1);
         }
 
-        private void GenR2(uint[] R2)
+        public void GenR1(uint[] R1, int rand)
+        {
+            KnuthYao(R1, (uint)rand);
+            FwdNTT(R1);
+        }
+
+        public void GenR2(uint[] R2)
         {
             int rand, bit, sign;
 
@@ -423,7 +442,27 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             FwdNTT(R2);
         }
 
-        private uint GetRand()
+        public void GenR2(uint[] R2, int rand)
+        {
+            int bit, sign;
+
+            for (int i = 0; i < M;)
+            {
+                rand = (int)GetRand();
+
+                for (int j = 0; j < 16; j++)
+                {
+                    bit = rand & 1;
+                    sign = IntUtils.URShift(rand, 1) & 1;
+                    if (sign == 1 && bit == 1) bit = (MODULUS - 1);
+                    R2[i++] = (uint)bit;
+                    rand = IntUtils.URShift(rand, 2);
+                }
+            }
+            FwdNTT(R2);
+        }
+
+        public uint GetRand()
         {
             uint rnd = (uint)m_secRand.Next();
             //set the least significant bit
@@ -431,7 +470,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return rnd;
         }
 
-        private void InvNtt(uint[] A)
+        public void InvNtt(uint[] A)
         {
             int i, j, k, m;
             int u1, t1, u2, t2;
@@ -505,7 +544,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private void KeyGen(uint[] A, uint[] P, uint[] R2)
+        public void KeyGen(uint[] A, uint[] P, uint[] R2)
         {
             if (ParallelUtils.IsParallel)
             {
@@ -533,7 +572,35 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             Rearrange(R2);
         }
 
-        private void KnuthYao(uint[] A)
+        public void KeyGen(uint[] A, uint[] P, uint[] R2, int rand)
+        {
+            if (ParallelUtils.IsParallel)
+            {
+                Action[] gA = new Action[]
+                {
+                    new Action(()=> GenA(A, rand)),
+                    new Action(()=> GenR1(P, rand)),
+                    new Action(()=> GenR2(R2, rand))
+                };
+                Parallel.Invoke(gA);
+            }
+            else
+            {
+                GenA(A, rand);
+                GenR1(P, rand);
+                GenR2(R2, rand);
+            }
+
+            uint[] tmpA = new uint[M];
+            //a = a*r2
+            FFT.Mul2(tmpA, A, R2, MODULUS);
+            //p = p-a*r2
+            FFT.Sub2(P, P, tmpA, MODULUS);
+
+            Rearrange(R2);
+        }
+
+        public void KnuthYao(uint[] A)
         {
             uint rnd = GetRand();
 
@@ -544,7 +611,16 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private uint KnuthYaoSingle(ref uint Rand)
+        public void KnuthYao(uint[] A, uint rnd)
+        {
+            for (int i = 0; i < M / 2; i++)
+            {
+                A[2 * i + 1] = KnuthYaoSingle(ref rnd);
+                A[2 * i] = KnuthYaoSingle(ref rnd);
+            }
+        }
+
+        public uint KnuthYaoSingle(ref uint Rand)
         {
             int distance;
             int row, column;
@@ -636,7 +712,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return 0;
         }
 
-        private uint Mod(int A)
+        public uint Mod(int A)
         {
             int quotient, remainder;
             quotient = A / MODULUS;
@@ -649,7 +725,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             return (uint)remainder;
         }
 
-        private void QBDecode(uint[] Cpt1)
+        public void QBDecode(uint[] Cpt1)
         {
             for (int i = 0; i < M; i++)
             {
@@ -660,7 +736,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private void Rearrange(uint[] A)
+        public void Rearrange(uint[] A)
         {
             int ctr;
             int b1, b2, b3, b4, b5, b6, b7, b8;
@@ -692,7 +768,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             }
         }
 
-        private void RLWEDecrypt(uint[] C1, uint[] C2, uint[] R2)
+        public void RLWEDecrypt(uint[] C1, uint[] C2, uint[] R2)
         {
             FFT.Mul2(C1, C1, R2, MODULUS);	// c1 <-- c1*r2
             FFT.Add2(C1, C1, C2, MODULUS);	// c1 <-- c1*r2 + c2
@@ -700,7 +776,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithm
             InvNtt(C1);
         }
 
-        private void RLWEEncrypt(uint[] A, uint[] C1, uint[] C2, uint[] Msg, uint[] P)
+        public void RLWEEncrypt(uint[] A, uint[] C1, uint[] C2, uint[] Msg, uint[] P)
         {
             uint[] e1 = new uint[M];
             uint[] e2 = new uint[M]; 

@@ -16,7 +16,7 @@
         <meta name="viewport" content="width=1060" />
 
         
-<link href="/cassette.axd/stylesheet/75304d341f2692195046382a03c9d77c7b7b1e36/resources/ui/global" type="text/css" rel="stylesheet"/>
+<link href="/cassette.axd/stylesheet/97db36b33ed33ea1f2f16747cd1d7085d44962f3/resources/ui/global" type="text/css" rel="stylesheet"/>
 <link href="/cassette.axd/stylesheet/cf21e2a5d7749f53d57d1a2aad772bcaffa48f1e/threeoh" type="text/css" rel="stylesheet"/>
 
 
@@ -131,8 +131,7 @@
                         <div class="wrapper">
                             <div class="navigation">
                                 <ul>
-                                    <li><a href="https://xamarin.uservoice.com/forums/145075-xamarin-component-ideas" class="external">Suggest a Component</a></li>
-                                    <li><a href="/submit">Submit a Component</a></li>
+                                    <li style="color: white;">Xamarin Components are moving to NuGet. Read more on <a style="padding: 0;" href="https://blog.xamarin.com/hello-nuget-new-home-xamarin-components/" target="_blank" class="external">our blog!</a></li>
                                 </ul>
                             </div>
                         </div>

@@ -79,7 +79,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE
     /// <item><description>Based on the Ring-LWE-Encryption C version: <a href="https://github.com/ruandc/Ring-LWE-Encryption">ruandc/Ring-LWE-Encryption</a>.</description></item>
     /// </list> 
     /// </remarks>
-    public sealed class RLWEKeyGenerator : IAsymmetricGenerator
+    public class RLWEKeyGenerator : IAsymmetricGenerator
     {
         #region Constants
         private const string ALG_NAME = "RLWEKeyGenerator";
@@ -88,7 +88,7 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE
         #region Fields
         private bool m_isDisposed;
         private RLWEParameters m_rlweParams;
-        private IRandom m_rndEngine;
+        public IRandom m_rndEngine;
         private bool m_frcLinear = false;
         #endregion
 

@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using System.Runtime.Serialization.Json;
 
 
+
 namespace OTRAndroidClient
 {
     [Activity(Label = "LoginActivity")]
@@ -49,8 +50,7 @@ namespace OTRAndroidClient
 
 
             //checkCredentials();
-           // session = GetSharedPreferences(userSessionPref, FileCreationMode.Private);
-
+            // session = GetSharedPreferences(userSessionPref, FileCreationMode.Private);
 
         }
 
