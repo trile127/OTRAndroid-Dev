@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SignalRChat
+namespace SignalRChat.Entity
 {
     using System;
     using System.Data.Entity;

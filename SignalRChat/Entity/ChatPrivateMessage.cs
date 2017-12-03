@@ -7,16 +7,15 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SignalRChat
+namespace SignalRChat.Entity
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class ChatMessageDetail
+    public partial class ChatPrivateMessage
     {
         public int ID { get; set; }
         public string UserName { get; set; }
-        public string Message { get; set; }
         public string EmailID { get; set; }
     }
 }

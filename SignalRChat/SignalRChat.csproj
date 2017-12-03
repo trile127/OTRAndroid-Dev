@@ -221,19 +221,19 @@
     <Content Include="Images\delete.png" />
     <Content Include="index.html" />
     <Content Include="Scripts\jquery-1.8.2.min.js" />
-    <EntityDeploy Include="Model.edmx">
+    <EntityDeploy Include="Entity\Model.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>Model.Designer.cs</LastGenOutput>
     </EntityDeploy>
-    <Content Include="Model.Context.tt">
+    <Content Include="Entity\Model.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>Model.edmx</DependentUpon>
       <LastGenOutput>Model.Context.cs</LastGenOutput>
     </Content>
-    <Content Include="Model.edmx.diagram">
+    <Content Include="Entity\Model.edmx.diagram">
       <DependentUpon>Model.edmx</DependentUpon>
     </Content>
-    <Content Include="Model.tt">
+    <Content Include="Entity\Model.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>Model.edmx</DependentUpon>
       <LastGenOutput>Model.cs</LastGenOutput>
@@ -256,32 +256,32 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChatHub.cs" />
-    <Compile Include="ChatMessageDetail.cs">
+    <Compile Include="Entity\ChatMessageDetail.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
-    <Compile Include="ChatPrivateMessage.cs">
+    <Compile Include="Entity\ChatPrivateMessage.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
-    <Compile Include="ChatPrivateMessageDetail.cs">
+    <Compile Include="Entity\ChatPrivateMessageDetail.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
-    <Compile Include="ChatUserDetail.cs">
+    <Compile Include="Entity\ChatUserDetail.cs">
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Model.Context.cs">
+    <Compile Include="Entity\Model.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Model.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="Model.cs">
+    <Compile Include="Entity\Model.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Model.tt</DependentUpon>
     </Compile>
-    <Compile Include="Model.Designer.cs">
+    <Compile Include="Entity\Model.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Model.edmx</DependentUpon>

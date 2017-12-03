@@ -25,7 +25,9 @@ using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Arithmetic
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Polynomial;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Curve;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Encode;
-
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS.Utility;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS.Arithmetic;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS;
 using VTDev.Libraries.CEXEngine.Crypto.Common;
 using VTDev.Libraries.CEXEngine.Crypto.Enumeration;
 using VTDev.Libraries.CEXEngine.Crypto.Prng;
@@ -48,11 +50,12 @@ namespace OTRAndroidClient
         String UserName;
         String Email;
         int userID;
+        String connectionID;
         List<string> myListItems;
         ListView myListView;
         List<ChatUserDetail> allUsers;
         List<ChatMessageDetail> messages;
-
+        ArrayAdapter<string> adapter;
         // Connect to the server
         HubConnection hubConnection;
 
@@ -69,11 +72,11 @@ namespace OTRAndroidClient
             myListItems.Add("Sydney");
             myListItems.Add("Melbourne");
 
-            ArrayAdapter<string> adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
+            adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
             myListView.Adapter = adapter;
 
             myListView.ItemClick += MyListView_ItemClick;
-
+            InitializeGMSS();
             InitializeNTRU();
             InitializePKE();
 
@@ -116,8 +119,7 @@ namespace OTRAndroidClient
         {
             try
             {
-                await hubConnection.Start();
-                chatHubProxy.On<int, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (userID, UserName, allUsers, messages) =>
+                chatHubProxy.On<string, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (connectionID, UserName, allUsers, messages) =>
                 {
 
                     for (int i = 0; i < allUsers.Count; i++)
@@ -131,6 +133,16 @@ namespace OTRAndroidClient
                     };
                 }
                 );
+
+                chatHubProxy.On<string, string, string>("onNewUserConnected", (connectionID, UserName, Email) =>
+                {
+                    AddUser(chatHubProxy, connectionID, UserName, Email);
+                }
+                );
+
+
+                await hubConnection.Start();
+                
 
                 if (hubConnection.State == ConnectionState.Connected)
                 {
@@ -215,7 +227,7 @@ namespace OTRAndroidClient
 
                 if (myListItems[e.Position] == allUsers[i].UserName)
                 {
-
+                    RunOnUiThread(() => Toast.MakeText(this, allUsers[i].UserName, ToastLength.Short).Show());
                 }
 
             }
@@ -312,6 +324,28 @@ namespace OTRAndroidClient
             bool Privtester = pri2.Equals(pri);
             bool pubTest = pub2.Equals(pub);
 
+
+            byte[] toBytes2 = Encoding.UTF8.GetBytes("Test");
+            byte[] enc2, dec2;
+            // encrypt an array
+            using (RLWEEncrypt cipher = new RLWEEncrypt(parameterTest))
+            {
+                cipher.Initialize(pub2);
+                enc2 = cipher.Encrypt(toBytes2);
+            }
+
+            // decrypt the cipher text
+            using (RLWEEncrypt cipher = new RLWEEncrypt(parameterTest))
+            {
+                cipher.Initialize(pri2);
+                dec2 = cipher.Decrypt(enc2);
+            }
+            string test12 = Encoding.UTF8.GetString(toBytes2);
+            string test22 = Encoding.UTF8.GetString(enc2);
+            string test32 = Encoding.UTF8.GetString(dec2);
+            test32 = test32.Substring(0, test12.Length);
+
+
             RLWEKeyPair keyPair = new RLWEKeyPair(pub, pri);
             // convert a key to a byte array
             byte[] rlwekeyArray = keyPair.PublicKey.ToBytes();
@@ -376,7 +410,9 @@ namespace OTRAndroidClient
             myListItems.Add(test1);
             myListItems.Add(test2);
             myListItems.Add(test3);
-
+            adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
+            myListView.Adapter = adapter;
+            myListView.ItemClick += MyListView_ItemClick;
 
 
 
@@ -387,7 +423,31 @@ namespace OTRAndroidClient
             //byte[] result = intBytes;
 
 
-   
+
+        }
+
+        void InitializeGMSS()
+        {
+            byte[] code;
+            byte[] data = new byte[100];
+            GMSSParameters encParams = (GMSSParameters)GMSSParamSets.GMSSN2P10.DeepCopy();
+            GMSSKeyGenerator gen = new GMSSKeyGenerator(encParams);
+            IAsymmetricKeyPair keyPair = gen.GenerateKeyPair();
+
+            // get the message code for an array of bytes
+            using (GMSSSign sign = new GMSSSign(encParams))
+            {
+                sign.Initialize(keyPair.PrivateKey);
+                code = sign.Sign(data, 0, data.Length);
+            }
+
+            // test the message for validity
+            using (GMSSSign sign = new GMSSSign(encParams))
+            {
+                sign.Initialize(keyPair.PublicKey);
+                bool valid = sign.Verify(data, 0, data.Length, code);
+            }
+
         }
 
 
