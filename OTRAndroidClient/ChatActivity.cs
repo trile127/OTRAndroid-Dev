@@ -35,6 +35,7 @@ using VTDev.Libraries.CEXEngine.CryptoException;
 
 using System.IO;
 using VTDev.Libraries.CEXEngine.Utility;
+using Android.Views.InputMethods;
 
 namespace OTRAndroidClient
 {
@@ -47,14 +48,17 @@ namespace OTRAndroidClient
     [Activity(Label = "ChatActivity")]
     public class ChatActivity : Activity
     {
+        ChatUserDetail mySelf;
         String UserName;
         String Email;
         int userID;
-        String connectionID;
+        String myconnectionID;
         List<string> myListItems;
         ListView myListView;
-        List<ChatUserDetail> allUsers;
-        List<ChatMessageDetail> messages;
+        List<ChatUserDetail> myUsers;
+        List<ChatMessageDetail> myMessages;
+        List<String> messageList;
+        List<PrivateChatMessage> myPrivateMessages;
         ArrayAdapter<string> adapter;
         // Connect to the server
         HubConnection hubConnection;
@@ -62,18 +66,25 @@ namespace OTRAndroidClient
         // Create a proxy to the 'ChatHub' SignalR Hub
         IHubProxy chatHubProxy;
 
+
+        EditText input;
+        ListView messages;
+        TextView privChatUser;
+        InputMethodManager inputManager;
+        ArrayAdapter privateadapter;
+
+
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
             SetContentView(Resource.Layout.Chat);
             myListView = FindViewById<ListView>(Resource.Id.myListView);
 
+            input = FindViewById<EditText>(Resource.Id.Input);
+            messages = FindViewById<ListView>(Resource.Id.PrivateMessages);
+            privChatUser = FindViewById<TextView>(Resource.Id.PrivateChatUser);
+            
             myListItems = new List<string>();
-            myListItems.Add("Sydney");
-            myListItems.Add("Melbourne");
-
-            adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
-            myListView.Adapter = adapter;
 
             myListView.ItemClick += MyListView_ItemClick;
             InitializeGMSS();
@@ -121,7 +132,9 @@ namespace OTRAndroidClient
             {
                 chatHubProxy.On<string, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (connectionID, UserName, allUsers, messages) =>
                 {
-
+                    myconnectionID = connectionID;
+                    myUsers = allUsers;
+                    myMessages = messages;
                     for (int i = 0; i < allUsers.Count; i++)
                     {
                         AddUser(chatHubProxy, allUsers[i].ConnectionID, allUsers[i].UserName, allUsers[i].EmailID);
@@ -140,6 +153,32 @@ namespace OTRAndroidClient
                 }
                 );
 
+                chatHubProxy.On<string, string>("onUserDisconnected", (connectionID, UserName) =>
+                {
+                    myListItems.Remove(UserName);
+                    adapter.NotifyDataSetChanged();
+                }
+                );
+
+                chatHubProxy.On<string, string>("onUserDisconnectedExisting", (connectionID, UserName) =>
+                {
+                    myListItems.Remove(UserName);
+                    adapter.NotifyDataSetChanged();
+                }
+                );
+
+                chatHubProxy.On<string, string>("messageReceived", (UserName, message) =>
+                {
+                    AddMessage(UserName, message);
+                }
+                );
+
+                chatHubProxy.On<ChatUserDetail, ChatUserDetail, string, string>("sendPrivateMessage", (fromUserDetails, toUserDetails, status, fromUserId) =>
+                {
+                    OpenPrivateMessageAsync(fromUserDetails, toUserDetails);
+                    getPrivateMessages(fromUserDetails, toUserDetails);
+                }
+                );
 
                 await hubConnection.Start();
                 
@@ -147,6 +186,9 @@ namespace OTRAndroidClient
                 if (hubConnection.State == ConnectionState.Connected)
                 {
                     await chatHubProxy.Invoke("Connect", UserName, Email);
+                    adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
+                    myListView.Adapter = adapter;
+                    myListView.ItemClick += MyListView_ItemClick;
                 }
 
             }
@@ -156,105 +198,106 @@ namespace OTRAndroidClient
                 Console.WriteLine(ex.ToString());
             }
 
-           
-           
         }
+
+        public async Task OpenPrivateMessageAsync(ChatUserDetail fromUser, ChatUserDetail toUser)
+        {
+            inputManager = (InputMethodManager)GetSystemService(InputMethodService);
+            privateadapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem2, new List<string>());
+            privChatUser.Text = fromUser.UserName;
+            messages.Adapter = privateadapter;
+
+
+            input.EditorAction +=
+              delegate
+              {
+                  inputManager.HideSoftInputFromWindow(input.WindowToken, HideSoftInputFlags.None);
+
+                  if (string.IsNullOrEmpty(input.Text))
+                      return;
+
+
+               
+                  //client.Send(input.Text);
+
+                  input.Text = "";
+              };
+            myPrivateMessages = await chatHubProxy.Invoke<List<PrivateChatMessage>>("GetPrivateMessage", fromUser.ConnectionID, toUser.ConnectionID, 10);
+            RunOnUiThread(() =>
+            {
+                for (int i = 0; i < myPrivateMessages.Count; i++)
+                {
+                    privateadapter.Add(myPrivateMessages[i].message);
+                }
+                adapter.NotifyDataSetChanged();
+            }
+            );
+
+        }
+
+        public async Task getPrivateMessages(ChatUserDetail fromUser, ChatUserDetail toUser)
+        {
+            myPrivateMessages = await chatHubProxy.Invoke<List<PrivateChatMessage>>("GetPrivateMessage", fromUser.ConnectionID, toUser.ConnectionID, 10);
+            RunOnUiThread(() =>
+            {
+                for (int i = 0; i < myPrivateMessages.Count; i++)
+                {
+                    privateadapter.Add(myPrivateMessages[i].message);
+                }
+                adapter.NotifyDataSetChanged();
+            }
+            );
+        }
+
+
 
 
 
         // Add User
         public void AddUser(IHubProxy chatHub, string id, string name, string email)
         {
-            myListItems.Add(name);
+            if (email == Email && myconnectionID == id)
+            {
+                mySelf.ConnectionID = id;
+                mySelf.UserName = name;
+                mySelf.EmailID = email;
+                RunOnUiThread(() => Toast.MakeText(this, "Welcome " + name, ToastLength.Long).Show());
 
-            // var userId = $('#hdId').val();
-            // var userEmail = $('#hdEmailID').val();
-            // var code = "";
-
-            // if (userEmail == email && $('.loginUser').length == 0) {
-            //     code = $('<div class="loginUser">' + name + "</div>");
-            // }
-            // else {
-            //     code = $('<a id="' + id + '" class="user" >' + name + '<a>');
-            //     $(code).click(function () {
-            //         var id = $(this).attr('id');
-            //         if (userEmail != email) {
-            //             OpenPrivateChatWindow(chatHub, id, name, userEmail, email);
-            //         }
-            //     });
-            // }
-
-            // $("#divusers").append(code);
+            }
+            else
+            {
+                myListItems.Add(name);
+                adapter.NotifyDataSetChanged();
+            }
+            
         }
 
         // Add Message
         public void AddMessage(string userName, string message)
         {
-            // $('#divChatWindow').append('<div class="message"><span class="userName">' + userName + '</span>: ' + message + '</div>');
-
-            // var height = $('#divChatWindow')[0].scrollHeight;
-            // $('#divChatWindow').scrollTop(height);
+            messageList.Add(UserName + ": " + message);
         }
 
 
-        // void registerClientMethods(var chatHub) {
-        //     // Calls when user successfully logged in
-        //     chatHub.client.onConnected = function (id, userName, allUsers, messages) {
-        //         setScreen(true);
-
-        //         $('#hdId').val(id);
-        //         $('#hdUserName').val(userName);
-        //         $('#spanUser').html(userName);
-
-        //         // Add All Users
-        //         for (i = 0; i < allUsers.length; i++) {
-        //             AddUser(chatHub, allUsers[i].ConnectionId, allUsers[i].UserName, allUsers[i].EmailID);
-        //         }
-
-        //         // Add Existing Messages
-        //         for (i = 0; i < messages.length; i++) {
-        //             AddMessage(messages[i].UserName, messages[i].Message);
-        //         }
-
-        //         $('.login').css('display', 'none');
-        //     }
 
         public void MyListView_ItemClick(object sender, AdapterView.ItemClickEventArgs e)
         {
 
-            for (int i = 0; i < allUsers.Count; i++)
+            for (int i = 0; i < myUsers.Count; i++)
             {
 
-                if (myListItems[e.Position] == allUsers[i].UserName)
+                if (myListItems[e.Position] == myUsers[i].UserName)
                 {
-                    RunOnUiThread(() => Toast.MakeText(this, allUsers[i].UserName, ToastLength.Short).Show());
+                    RunOnUiThread(() => Toast.MakeText(this, myUsers[i].UserName, ToastLength.Short).Show());
+                    SetContentView(Resource.Layout.PrivateMessage);
+                    OpenPrivateMessageAsync(mySelf, myUsers[i]);
                 }
 
             }
-            SetContentView(Resource.Layout.Chat);
+            //SetContentView(Resource.Layout.Chat);
 
 
         }
-        //protected override void OnListItemClick(ListView l, View v, int position, long id)
-        //{
-        //    base.OnListItemClick(l, v, position, id);
-
-        //    Player player = ((ButtonAdapter)this.ListAdapter)[position];
-        //    string text = string.Format("{0} Item Click!", player.Name);
-        //    Toast.MakeText(this, text, ToastLength.Short).Show();
-        //}
-        //protected override void OnCreate(Bundle savedInstanceState)
-        //{
-        //    base.OnCreate(savedInstanceState);
-        //    SetContentView(Resource.Layout.Users);
-        //    var contactsAdapter = new ContactsAdapter(this);
-        //    var contactsListView = FindViewById<ListView>(Resource.Id.ContactsListView);
-        //    contactsListView.Adapter = contactsAdapter;
-
-
-        //    Bundle bundler = Intent.GetBundleExtra("bundle");
-        //    userName = bundler.GetString("UserName");
-        //    email = bundler.GetString("Email");
 
         public void InitializeNTRU()
         {
@@ -407,22 +450,17 @@ namespace OTRAndroidClient
             string test1 = Encoding.ASCII.GetString(toBytes);
             string test2 = Encoding.ASCII.GetString(enc);
             string test3 = Encoding.ASCII.GetString(dec);
-            myListItems.Add(test1);
-            myListItems.Add(test2);
-            myListItems.Add(test3);
-            adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
-            myListView.Adapter = adapter;
-            myListView.ItemClick += MyListView_ItemClick;
 
-
+            //myListItems.Add(test1);
+            //myListItems.Add(test2.Substring(0, 64));
+            //myListItems.Add(test3.Substring(0, test1.Length));
+            
 
             //int intValue = 512;
             //byte[] intBytes = BitConverter.GetBytes(intValue);
             //if (BitConverter.IsLittleEndian)
             //    Array.Reverse(intBytes);
             //byte[] result = intBytes;
-
-
 
         }
 
@@ -449,66 +487,6 @@ namespace OTRAndroidClient
             }
 
         }
-
-
-
-
-
-        //var messageListAdapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, new List<string>());
-        //    var messageList = FindViewById<ListView>(Resource.Id.Messages);
-        //    messageList.Adapter = messageListAdapter;
-
-        //    var hubConnection = new HubConnection("http://signalrchat.azurewebsites.net/");
-        //    var chatHubProxy = hubConnection.CreateHubProxy("ChatHub");
-
-
-
-
-
-        //    var connection = new Connection("http://signalrchat.azurewebsites.net/");
-        //    connection.Received += data =>
-        //        RunOnUiThread(() => messageListAdapter.Add(data));
-
-        //    var sendMessage = FindViewById<Button>(Resource.Id.SendMessage);
-        //    var message = FindViewById<TextView>(Resource.Id.Message);
-
-        //    sendMessage.Click += delegate
-        //    {
-        //        if (!string.IsNullOrWhiteSpace(message.Text) && connection.State == ConnectionState.Connected)
-        //        {
-        //            connection.Send("Android: " + message.Text);
-
-        //            RunOnUiThread(() => message.Text = "");
-        //        }
-        //    };
-
-        //    connection.Start().ContinueWith(task => connection.Send("Android: connected"));
-        //}
-
-
-        //// Add User
-        //function AddUser(chatHub, id, name, email)
-        //{
-        //    var userId = $('#hdId').val();
-        //    var userEmail = $('#hdEmailID').val();
-        //    var code = "";
-
-        //    if (userEmail == email && $('.loginUser').length == 0) {
-        //        code = $('<div class="loginUser">' + name + "</div>");
-        //    }
-        //    else {
-        //        code = $('<a id="' + id + '" class="user" >' + name + '<a>');
-        //        $(code).click(function() {
-        //            var id = $(this).attr('id');
-        //            if (userEmail != email)
-        //            {
-        //                OpenPrivateChatWindow(chatHub, id, name, userEmail, email);
-        //            }
-        //        });
-        //    }
-
-        //    $("#divusers").append(code);
-        //}
 
     }
 }

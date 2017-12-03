@@ -95,6 +95,7 @@ namespace SignalRChat
 
                     // send to 
                     Clients.Client(toUserId).sendPrivateMessage(fromUserId, fromUser.UserName, message, fromUser.EmailID, toUser.EmailID, status, fromUserId);
+                    Clients.Client(toUserId).sendPrivateMessage(new ChatUserDetail() { ID = fromUser.ID, UserName = fromUser.UserName, EmailID = fromUser.EmailID }, new ChatUserDetail() { ID = toUser.ID, UserName = toUser.UserName, EmailID = toUser.EmailID }, status, fromUserId);
 
                     // send to caller user
                     Clients.Caller.sendPrivateMessage(toUserId, fromUser.UserName, message, fromUser.EmailID, toUser.EmailID, status, fromUserId);

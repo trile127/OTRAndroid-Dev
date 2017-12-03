@@ -2428,11 +2428,14 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070032
 			public const int CTRL = 2131165234;
 			
-			// aapt resource value: 0x7f0700bc
-			public const int ContactsListView = 2131165372;
+			// aapt resource value: 0x7f0700be
+			public const int ContactsListView = 2131165374;
 			
 			// aapt resource value: 0x7f070033
 			public const int FUNCTION = 2131165235;
+			
+			// aapt resource value: 0x7f0700bb
+			public const int Input = 2131165371;
 			
 			// aapt resource value: 0x7f070034
 			public const int META = 2131165236;
@@ -2440,8 +2443,11 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07008a
 			public const int Message = 2131165322;
 			
-			// aapt resource value: 0x7f07008c
-			public const int Messages = 2131165324;
+			// aapt resource value: 0x7f0700ba
+			public const int PrivateChatUser = 2131165370;
+			
+			// aapt resource value: 0x7f0700bc
+			public const int PrivateMessages = 2131165372;
 			
 			// aapt resource value: 0x7f070035
 			public const int SHIFT = 2131165237;
@@ -2452,8 +2458,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07008b
 			public const int SendMessage = 2131165323;
 			
-			// aapt resource value: 0x7f0700ab
-			public const int action0 = 2131165355;
+			// aapt resource value: 0x7f0700aa
+			public const int action0 = 2131165354;
 			
 			// aapt resource value: 0x7f07007b
 			public const int action_bar = 2131165307;
@@ -2476,17 +2482,17 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070059
 			public const int action_bar_title = 2131165273;
 			
-			// aapt resource value: 0x7f0700a8
-			public const int action_container = 2131165352;
+			// aapt resource value: 0x7f0700a7
+			public const int action_container = 2131165351;
 			
 			// aapt resource value: 0x7f07007c
 			public const int action_context_bar = 2131165308;
 			
-			// aapt resource value: 0x7f0700af
-			public const int action_divider = 2131165359;
+			// aapt resource value: 0x7f0700ae
+			public const int action_divider = 2131165358;
 			
-			// aapt resource value: 0x7f0700a9
-			public const int action_image = 2131165353;
+			// aapt resource value: 0x7f0700a8
+			public const int action_image = 2131165352;
 			
 			// aapt resource value: 0x7f070003
 			public const int action_menu_divider = 2131165187;
@@ -2503,11 +2509,11 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07005b
 			public const int action_mode_close_button = 2131165275;
 			
-			// aapt resource value: 0x7f0700aa
-			public const int action_text = 2131165354;
+			// aapt resource value: 0x7f0700a9
+			public const int action_text = 2131165353;
 			
-			// aapt resource value: 0x7f0700b8
-			public const int actions = 2131165368;
+			// aapt resource value: 0x7f0700b7
+			public const int actions = 2131165367;
 			
 			// aapt resource value: 0x7f07005c
 			public const int activity_chooser_view_content = 2131165276;
@@ -2539,23 +2545,23 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07003c
 			public const int bottom = 2131165244;
 			
-			// aapt resource value: 0x7f0700a5
-			public const int btnForgotPw = 2131165349;
-			
 			// aapt resource value: 0x7f0700a4
-			public const int btnLogin = 2131165348;
+			public const int btnForgotPw = 2131165348;
 			
-			// aapt resource value: 0x7f0700a6
-			public const int btnRegister = 2131165350;
+			// aapt resource value: 0x7f0700a3
+			public const int btnLogin = 2131165347;
 			
-			// aapt resource value: 0x7f070091
-			public const int button1 = 2131165329;
+			// aapt resource value: 0x7f0700a5
+			public const int btnRegister = 2131165349;
+			
+			// aapt resource value: 0x7f070090
+			public const int button1 = 2131165328;
 			
 			// aapt resource value: 0x7f070062
 			public const int buttonPanel = 2131165282;
 			
-			// aapt resource value: 0x7f0700ac
-			public const int cancel_action = 2131165356;
+			// aapt resource value: 0x7f0700ab
+			public const int cancel_action = 2131165355;
 			
 			// aapt resource value: 0x7f070044
 			public const int center = 2131165252;
@@ -2569,8 +2575,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070072
 			public const int checkbox = 2131165298;
 			
-			// aapt resource value: 0x7f0700b4
-			public const int chronometer = 2131165364;
+			// aapt resource value: 0x7f0700b3
+			public const int chronometer = 2131165363;
 			
 			// aapt resource value: 0x7f07004d
 			public const int clip_horizontal = 2131165261;
@@ -2581,14 +2587,14 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070038
 			public const int collapseActionView = 2131165240;
 			
-			// aapt resource value: 0x7f070094
-			public const int container = 2131165332;
+			// aapt resource value: 0x7f070093
+			public const int container = 2131165331;
 			
 			// aapt resource value: 0x7f070065
 			public const int contentPanel = 2131165285;
 			
-			// aapt resource value: 0x7f070095
-			public const int coordinator = 2131165333;
+			// aapt resource value: 0x7f070094
+			public const int coordinator = 2131165332;
 			
 			// aapt resource value: 0x7f07006c
 			public const int custom = 2131165292;
@@ -2602,29 +2608,29 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07005f
 			public const int default_activity_button = 2131165279;
 			
-			// aapt resource value: 0x7f070097
-			public const int design_bottom_sheet = 2131165335;
-			
-			// aapt resource value: 0x7f07009e
-			public const int design_menu_item_action_area = 2131165342;
+			// aapt resource value: 0x7f070096
+			public const int design_bottom_sheet = 2131165334;
 			
 			// aapt resource value: 0x7f07009d
-			public const int design_menu_item_action_area_stub = 2131165341;
+			public const int design_menu_item_action_area = 2131165341;
 			
 			// aapt resource value: 0x7f07009c
-			public const int design_menu_item_text = 2131165340;
+			public const int design_menu_item_action_area_stub = 2131165340;
 			
 			// aapt resource value: 0x7f07009b
-			public const int design_navigation_view = 2131165339;
+			public const int design_menu_item_text = 2131165339;
+			
+			// aapt resource value: 0x7f07009a
+			public const int design_navigation_view = 2131165338;
 			
 			// aapt resource value: 0x7f07001f
 			public const int disableHome = 2131165215;
 			
-			// aapt resource value: 0x7f0700a2
-			public const int editEmail = 2131165346;
+			// aapt resource value: 0x7f0700a1
+			public const int editEmail = 2131165345;
 			
-			// aapt resource value: 0x7f0700a3
-			public const int editUserName = 2131165347;
+			// aapt resource value: 0x7f0700a2
+			public const int editUserName = 2131165346;
 			
 			// aapt resource value: 0x7f07007d
 			public const int edit_query = 2131165309;
@@ -2632,8 +2638,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07002f
 			public const int end = 2131165231;
 			
-			// aapt resource value: 0x7f0700ba
-			public const int end_padder = 2131165370;
+			// aapt resource value: 0x7f0700b9
+			public const int end_padder = 2131165369;
 			
 			// aapt resource value: 0x7f07003e
 			public const int enterAlways = 2131165246;
@@ -2677,8 +2683,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070061
 			public const int icon = 2131165281;
 			
-			// aapt resource value: 0x7f0700b9
-			public const int icon_group = 2131165369;
+			// aapt resource value: 0x7f0700b8
+			public const int icon_group = 2131165368;
 			
 			// aapt resource value: 0x7f070039
 			public const int ifRoom = 2131165241;
@@ -2686,11 +2692,11 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07005e
 			public const int image = 2131165278;
 			
-			// aapt resource value: 0x7f0700a0
-			public const int imgLogo = 2131165344;
+			// aapt resource value: 0x7f07009f
+			public const int imgLogo = 2131165343;
 			
-			// aapt resource value: 0x7f0700b5
-			public const int info = 2131165365;
+			// aapt resource value: 0x7f0700b4
+			public const int info = 2131165364;
 			
 			// aapt resource value: 0x7f070058
 			public const int italic = 2131165272;
@@ -2698,8 +2704,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070000
 			public const int item_touch_helper_previous_elevation = 2131165184;
 			
-			// aapt resource value: 0x7f070093
-			public const int largeLabel = 2131165331;
+			// aapt resource value: 0x7f070092
+			public const int largeLabel = 2131165330;
 			
 			// aapt resource value: 0x7f070048
 			public const int left = 2131165256;
@@ -2716,20 +2722,20 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070060
 			public const int list_item = 2131165280;
 			
-			// aapt resource value: 0x7f0700a7
-			public const int loginButton = 2131165351;
+			// aapt resource value: 0x7f0700a6
+			public const int loginButton = 2131165350;
 			
-			// aapt resource value: 0x7f0700be
-			public const int masked = 2131165374;
+			// aapt resource value: 0x7f0700c0
+			public const int masked = 2131165376;
 			
-			// aapt resource value: 0x7f0700ae
-			public const int media_actions = 2131165358;
+			// aapt resource value: 0x7f0700ad
+			public const int media_actions = 2131165357;
 			
-			// aapt resource value: 0x7f0700bf
-			public const int menu = 2131165375;
+			// aapt resource value: 0x7f0700c1
+			public const int menu = 2131165377;
 			
-			// aapt resource value: 0x7f0700bb
-			public const int message = 2131165371;
+			// aapt resource value: 0x7f0700bd
+			public const int message = 2131165373;
 			
 			// aapt resource value: 0x7f070030
 			public const int middle = 2131165232;
@@ -2740,11 +2746,11 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070026
 			public const int multiply = 2131165222;
 			
-			// aapt resource value: 0x7f07008d
-			public const int myListView = 2131165325;
+			// aapt resource value: 0x7f07008c
+			public const int myListView = 2131165324;
 			
-			// aapt resource value: 0x7f07009a
-			public const int navigation_header_container = 2131165338;
+			// aapt resource value: 0x7f070099
+			public const int navigation_header_container = 2131165337;
 			
 			// aapt resource value: 0x7f07003a
 			public const int never = 2131165242;
@@ -2755,14 +2761,14 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07001d
 			public const int normal = 2131165213;
 			
-			// aapt resource value: 0x7f0700b7
-			public const int notification_background = 2131165367;
-			
-			// aapt resource value: 0x7f0700b1
-			public const int notification_main_column = 2131165361;
+			// aapt resource value: 0x7f0700b6
+			public const int notification_background = 2131165366;
 			
 			// aapt resource value: 0x7f0700b0
-			public const int notification_main_column_container = 2131165360;
+			public const int notification_main_column = 2131165360;
+			
+			// aapt resource value: 0x7f0700af
+			public const int notification_main_column_container = 2131165359;
 			
 			// aapt resource value: 0x7f07004b
 			public const int parallax = 2131165259;
@@ -2785,17 +2791,17 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070074
 			public const int radio = 2131165300;
 			
-			// aapt resource value: 0x7f07008e
-			public const int relativeLayout1 = 2131165326;
+			// aapt resource value: 0x7f07008d
+			public const int relativeLayout1 = 2131165325;
 			
 			// aapt resource value: 0x7f070049
 			public const int right = 2131165257;
 			
-			// aapt resource value: 0x7f0700b6
-			public const int right_icon = 2131165366;
+			// aapt resource value: 0x7f0700b5
+			public const int right_icon = 2131165365;
 			
-			// aapt resource value: 0x7f0700b2
-			public const int right_side = 2131165362;
+			// aapt resource value: 0x7f0700b1
+			public const int right_side = 2131165361;
 			
 			// aapt resource value: 0x7f07000c
 			public const int save_image_matrix = 2131165196;
@@ -2869,14 +2875,14 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070024
 			public const int showTitle = 2131165220;
 			
-			// aapt resource value: 0x7f070092
-			public const int smallLabel = 2131165330;
-			
-			// aapt resource value: 0x7f070099
-			public const int snackbar_action = 2131165337;
+			// aapt resource value: 0x7f070091
+			public const int smallLabel = 2131165329;
 			
 			// aapt resource value: 0x7f070098
-			public const int snackbar_text = 2131165336;
+			public const int snackbar_action = 2131165336;
+			
+			// aapt resource value: 0x7f070097
+			public const int snackbar_text = 2131165335;
 			
 			// aapt resource value: 0x7f070042
 			public const int snap = 2131165250;
@@ -2899,8 +2905,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07004a
 			public const int start = 2131165258;
 			
-			// aapt resource value: 0x7f0700ad
-			public const int status_bar_latest_event_content = 2131165357;
+			// aapt resource value: 0x7f0700ac
+			public const int status_bar_latest_event_content = 2131165356;
 			
 			// aapt resource value: 0x7f070075
 			public const int submenuarrow = 2131165301;
@@ -2923,8 +2929,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070068
 			public const int textSpacerNoTitle = 2131165288;
 			
-			// aapt resource value: 0x7f07009f
-			public const int text_input_password_toggle = 2131165343;
+			// aapt resource value: 0x7f07009e
+			public const int text_input_password_toggle = 2131165342;
 			
 			// aapt resource value: 0x7f070014
 			public const int textinput_counter = 2131165204;
@@ -2932,8 +2938,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070015
 			public const int textinput_error = 2131165205;
 			
-			// aapt resource value: 0x7f0700b3
-			public const int time = 2131165363;
+			// aapt resource value: 0x7f0700b2
+			public const int time = 2131165362;
 			
 			// aapt resource value: 0x7f07001b
 			public const int title = 2131165211;
@@ -2950,8 +2956,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f07006d
 			public const int topPanel = 2131165293;
 			
-			// aapt resource value: 0x7f070096
-			public const int touch_outside = 2131165334;
+			// aapt resource value: 0x7f070095
+			public const int touch_outside = 2131165333;
 			
 			// aapt resource value: 0x7f07000f
 			public const int transition_current_scene = 2131165199;
@@ -2968,14 +2974,14 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070013
 			public const int transition_transform = 2131165203;
 			
-			// aapt resource value: 0x7f0700a1
-			public const int txtCaption = 2131165345;
+			// aapt resource value: 0x7f0700a0
+			public const int txtCaption = 2131165344;
+			
+			// aapt resource value: 0x7f07008e
+			public const int txtName = 2131165326;
 			
 			// aapt resource value: 0x7f07008f
-			public const int txtName = 2131165327;
-			
-			// aapt resource value: 0x7f070090
-			public const int txtTeam = 2131165328;
+			public const int txtTeam = 2131165327;
 			
 			// aapt resource value: 0x7f07002c
 			public const int uniform = 2131165228;
@@ -2989,8 +2995,8 @@ namespace OTRAndroidClient
 			// aapt resource value: 0x7f070016
 			public const int view_offset_helper = 2131165206;
 			
-			// aapt resource value: 0x7f0700bd
-			public const int visible = 2131165373;
+			// aapt resource value: 0x7f0700bf
+			public const int visible = 2131165375;
 			
 			// aapt resource value: 0x7f07003b
 			public const int withText = 2131165243;
@@ -3235,22 +3241,25 @@ namespace OTRAndroidClient
 			public const int notification_template_part_time = 2130903099;
 			
 			// aapt resource value: 0x7f03003c
-			public const int select_dialog_item_material = 2130903100;
+			public const int PrivateMessage = 2130903100;
 			
 			// aapt resource value: 0x7f03003d
-			public const int select_dialog_multichoice_material = 2130903101;
+			public const int select_dialog_item_material = 2130903101;
 			
 			// aapt resource value: 0x7f03003e
-			public const int select_dialog_singlechoice_material = 2130903102;
+			public const int select_dialog_multichoice_material = 2130903102;
 			
 			// aapt resource value: 0x7f03003f
-			public const int support_simple_spinner_dropdown_item = 2130903103;
+			public const int select_dialog_singlechoice_material = 2130903103;
 			
 			// aapt resource value: 0x7f030040
-			public const int tooltip = 2130903104;
+			public const int support_simple_spinner_dropdown_item = 2130903104;
 			
 			// aapt resource value: 0x7f030041
-			public const int Users = 2130903105;
+			public const int tooltip = 2130903105;
+			
+			// aapt resource value: 0x7f030042
+			public const int Users = 2130903106;
 			
 			static Layout()
 			{

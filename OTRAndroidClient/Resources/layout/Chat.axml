@@ -13,12 +13,6 @@
         android:layout_height="wrap_content"
         android:text="Send Message" />
     <ListView
-        android:minWidth="25px"
-        android:minHeight="25px"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/Messages" />
-    <ListView
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:id="@+id/myListView" />
