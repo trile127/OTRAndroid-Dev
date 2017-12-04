@@ -80,15 +80,16 @@ namespace OTRAndroidClient
             SetContentView(Resource.Layout.Chat);
             myListView = FindViewById<ListView>(Resource.Id.myListView);
 
+            privateadapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem2, new List<string>());
             input = FindViewById<EditText>(Resource.Id.Input);
             messages = FindViewById<ListView>(Resource.Id.PrivateMessages);
             privChatUser = FindViewById<TextView>(Resource.Id.PrivateChatUser);
             
             myListItems = new List<string>();
-
             myListView.ItemClick += MyListView_ItemClick;
-            InitializeGMSS();
-            InitializeNTRU();
+
+            //InitializeGMSS();
+            //InitializeNTRU();
             InitializePKE();
 
             Bundle bundler = Intent.GetBundleExtra("bundle");
@@ -101,28 +102,7 @@ namespace OTRAndroidClient
             // Create a proxy to the 'ChatHub' SignalR Hub
             chatHubProxy = hubConnection.CreateHubProxy("ChatHub");
 
-            //chatHubProxy.On<int, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (userID, UserName, allUsers, messages) =>
-            //{
-            //    Email = bundler.GetString("Email");
-            //    for (int i = 0; i < allUsers.Count; i++)
-            //    {
-            //        AddUser(chatHubProxy, allUsers[i].ConnectionID, allUsers[i].UserName, allUsers[i].EmailID);
-            //    };
-            //    // Add Existing Messages
-            //    for (int i = 0; i < messages.Count; i++)
-            //    {
-            //        AddMessage(messages[i].UserName, messages[i].Message);
-            //    };
-            //}
-            //);
-
-
             Connect();
-            ////Start the connection
-            //await hubConnection.Start();
-
-            //// Invoke the 'UpdateNick' method on the server
-            //await chatHubProxy.Invoke("Connect", UserName, Email);
 
         }
 
@@ -173,10 +153,10 @@ namespace OTRAndroidClient
                 }
                 );
 
-                chatHubProxy.On<ChatUserDetail, ChatUserDetail, string, string>("sendPrivateMessage", (fromUserDetails, toUserDetails, status, fromUserId) =>
+                chatHubProxy.On<ChatUserDetail, ChatUserDetail, string, string>("sendPrivateMessage2", (fromUserDetails, toUserDetails, status, fromUserId) =>
                 {
-                    OpenPrivateMessageAsync(fromUserDetails, toUserDetails);
-                    getPrivateMessages(fromUserDetails, toUserDetails);
+                    OpenPrivateMessageAsync(toUserDetails.ConnectionID, toUserDetails.UserName, toUserDetails.EmailID);
+                    getPrivateMessages(fromUserDetails.ConnectionID, toUserDetails.EmailID);
                 }
                 );
 
@@ -185,10 +165,10 @@ namespace OTRAndroidClient
 
                 if (hubConnection.State == ConnectionState.Connected)
                 {
-                    await chatHubProxy.Invoke("Connect", UserName, Email);
                     adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
                     myListView.Adapter = adapter;
                     myListView.ItemClick += MyListView_ItemClick;
+                    await chatHubProxy.Invoke("Connect", UserName, Email);
                 }
 
             }
@@ -200,13 +180,16 @@ namespace OTRAndroidClient
 
         }
 
-        public async Task OpenPrivateMessageAsync(ChatUserDetail fromUser, ChatUserDetail toUser)
+        public async Task OpenPrivateMessageAsync(string toID, string toUserName, string toEmail)
         {
+            SetContentView(Resource.Layout.PrivateMessage);
             inputManager = (InputMethodManager)GetSystemService(InputMethodService);
-            privateadapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem2, new List<string>());
-            privChatUser.Text = fromUser.UserName;
+            privChatUser.Text = toUserName;
             messages.Adapter = privateadapter;
-
+            await getPrivateMessages(toID, toEmail);
+            privateadapter.NotifyDataSetChanged();
+            messages.Adapter = privateadapter;
+            SetContentView(Resource.Layout.PrivateMessage);
 
             input.EditorAction +=
               delegate
@@ -217,36 +200,25 @@ namespace OTRAndroidClient
                       return;
 
 
-               
+                  chatHubProxy.Invoke<List<PrivateChatMessage>>("SendPrivateMessage", toID, input.Text, "Click");
                   //client.Send(input.Text);
 
                   input.Text = "";
               };
-            myPrivateMessages = await chatHubProxy.Invoke<List<PrivateChatMessage>>("GetPrivateMessage", fromUser.ConnectionID, toUser.ConnectionID, 10);
-            RunOnUiThread(() =>
-            {
-                for (int i = 0; i < myPrivateMessages.Count; i++)
-                {
-                    privateadapter.Add(myPrivateMessages[i].message);
-                }
-                adapter.NotifyDataSetChanged();
-            }
-            );
+
 
         }
 
-        public async Task getPrivateMessages(ChatUserDetail fromUser, ChatUserDetail toUser)
+        public async Task getPrivateMessages(string toID, string toEmail)
         {
-            myPrivateMessages = await chatHubProxy.Invoke<List<PrivateChatMessage>>("GetPrivateMessage", fromUser.ConnectionID, toUser.ConnectionID, 10);
-            RunOnUiThread(() =>
-            {
-                for (int i = 0; i < myPrivateMessages.Count; i++)
+            myPrivateMessages = await chatHubProxy.Invoke<List<PrivateChatMessage>>("GetPrivateMessage", toID, toEmail, 10);
+
+            for (int i = 0; i < myPrivateMessages.Count; i++)
                 {
                     privateadapter.Add(myPrivateMessages[i].message);
                 }
-                adapter.NotifyDataSetChanged();
-            }
-            );
+            privateadapter.NotifyDataSetChanged();
+
         }
 
 
@@ -262,12 +234,16 @@ namespace OTRAndroidClient
                 mySelf.UserName = name;
                 mySelf.EmailID = email;
                 RunOnUiThread(() => Toast.MakeText(this, "Welcome " + name, ToastLength.Long).Show());
-
             }
             else
             {
                 myListItems.Add(name);
-                adapter.NotifyDataSetChanged();
+                adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, myListItems);
+                myListView.Adapter = adapter;
+
+                adapter.Add("AdapterTest");
+                myListView.Adapter = adapter;
+                //adapter.NotifyDataSetChanged();
             }
             
         }
@@ -285,12 +261,11 @@ namespace OTRAndroidClient
 
             for (int i = 0; i < myUsers.Count; i++)
             {
-
                 if (myListItems[e.Position] == myUsers[i].UserName)
                 {
                     RunOnUiThread(() => Toast.MakeText(this, myUsers[i].UserName, ToastLength.Short).Show());
-                    SetContentView(Resource.Layout.PrivateMessage);
-                    OpenPrivateMessageAsync(mySelf, myUsers[i]);
+                    OpenPrivateMessageAsync(myUsers[i].ConnectionID, myUsers[i].UserName, myUsers[i].EmailID);
+                    break;
                 }
 
             }
@@ -451,10 +426,10 @@ namespace OTRAndroidClient
             string test2 = Encoding.ASCII.GetString(enc);
             string test3 = Encoding.ASCII.GetString(dec);
 
-            //myListItems.Add(test1);
-            //myListItems.Add(test2.Substring(0, 64));
-            //myListItems.Add(test3.Substring(0, test1.Length));
-            
+            myListItems.Add(test1);
+            myListItems.Add(test2.Substring(0, 64));
+            myListItems.Add(test3.Substring(0, test1.Length));
+
 
             //int intValue = 512;
             //byte[] intBytes = BitConverter.GetBytes(intValue);
