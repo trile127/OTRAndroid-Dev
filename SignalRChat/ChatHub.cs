@@ -3,6 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.SignalR;
 using SignalRChat.Entity;
+
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithmetic;
+
+
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Interfaces;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Arithmetic;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Polynomial;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Curve;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Encode;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS.Utility;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS.Arithmetic;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS;
+using VTDev.Libraries.CEXEngine.Crypto.Common;
+using VTDev.Libraries.CEXEngine.Crypto.Enumeration;
+using VTDev.Libraries.CEXEngine.Crypto.Prng;
 namespace SignalRChat
 {
     public class ChatHub : Hub
@@ -108,6 +126,104 @@ namespace SignalRChat
                 }
             }
         }
+
+        public void SendEncryptedPrivateMessage(string toUserId, string message, string status, int length)
+        {
+            string fromUserId = Context.ConnectionId;
+            using (OTRAndroidEntities dc = new OTRAndroidEntities())
+            {
+                var toUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == toUserId);
+                var fromUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == fromUserId);
+                if (toUser != null && fromUser != null)
+                {
+                    if (status == "Click")
+                        AddPrivateMessageinCache(fromUser.EmailID, toUser.EmailID, fromUser.UserName, message);
+
+                    // send to 
+                    Clients.Client(toUserId).sendEncryptedPrivateMessage(new ChatUserDetail() { ID = fromUser.ID, UserName = fromUser.UserName, EmailID = fromUser.EmailID }, new ChatUserDetail() { ID = toUser.ID, UserName = toUser.UserName, EmailID = toUser.EmailID }, message, length);
+
+                    // send to caller user
+
+                    Clients.Caller.sendEncryptedPrivateMessage(new ChatUserDetail() { ID = fromUser.ID, UserName = fromUser.UserName, EmailID = fromUser.EmailID }, new ChatUserDetail() { ID = toUser.ID, UserName = toUser.UserName, EmailID = toUser.EmailID }, message, length);
+                }
+            }
+        }
+
+        public void InitOTR(string toUserId, RLWEParameters parameters, int random, RLWEPublicKey pubKey)
+        {
+            string fromUserId = Context.ConnectionId;
+            using (OTRAndroidEntities dc = new OTRAndroidEntities())
+            {
+                var toUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == toUserId);
+                var fromUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == fromUserId);
+                if (toUser != null && fromUser != null)
+                {
+                    // send to 
+                    Clients.Client(toUserId).receiveParams(fromUser, parameters, random, pubKey);
+                }
+            }
+        }
+
+        public void receiverSendOTR(string toUserId, RLWEPublicKey pubKey)
+        {
+            string fromUserId = Context.ConnectionId;
+            using (OTRAndroidEntities dc = new OTRAndroidEntities())
+            {
+                var toUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == toUserId);
+                var fromUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == fromUserId);
+                if (toUser != null && fromUser != null)
+                {
+                    // send to 
+                    Clients.Client(toUserId).endOTR(pubKey);
+                }
+            }
+        }
+
+        public void initReKey(string toUserId, int random, RLWEPublicKey pubKey)
+        {
+            string fromUserId = Context.ConnectionId;
+            using (OTRAndroidEntities dc = new OTRAndroidEntities())
+            {
+                var toUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == toUserId);
+                var fromUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == fromUserId);
+                if (toUser != null && fromUser != null)
+                {
+                    // send to 
+                    Clients.Client(toUserId).receiveReKeying(random, pubKey);
+                }
+            }
+        }
+
+        public void receiverReKey(string toUserId, RLWEPublicKey pubKey)
+        {
+            string fromUserId = Context.ConnectionId;
+            using (OTRAndroidEntities dc = new OTRAndroidEntities())
+            {
+                var toUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == toUserId);
+                var fromUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == fromUserId);
+                if (toUser != null && fromUser != null)
+                {
+                    // send to 
+                    Clients.Client(toUserId).endReKey(pubKey);
+                }
+            }
+        }
+
+        public void sendGMSS(string toUserId, GMSSPublicKey pubKey)
+        {
+            string fromUserId = Context.ConnectionId;
+            using (OTRAndroidEntities dc = new OTRAndroidEntities())
+            {
+                var toUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == toUserId);
+                var fromUser = dc.ChatUserDetails.FirstOrDefault(x => x.ConnectionID == fromUserId);
+                if (toUser != null && fromUser != null)
+                {
+                    // send to 
+                    Clients.Client(toUserId).receiveGMSS(pubKey);
+                }
+            }
+        }
+
         public List<PrivateChatMessage> GetPrivateMessage(string fromid, string toid, int take)
         {
             using (OTRAndroidEntities dc = new OTRAndroidEntities())

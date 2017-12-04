@@ -8,7 +8,7 @@ namespace EntityFrameworkWithXamarin.Core
 {
     public class CatContext : DbContext
     {
-        public DbSet<Models> Cats { get; set; }
+        public DbSet<Cat> Cats { get; set; }
 
         private string DatabasePath { get; set; }
 

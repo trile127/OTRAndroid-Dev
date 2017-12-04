@@ -3,22 +3,22 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <!--<EditText
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/Message" />
-    <Button
+  <EditText
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:id="@+id/ToUser" />
+  <!-- <Button
         android:id="@+id/SendMessage"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Send Message" />-->
-    <ListView
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:id="@+id/myListView" />
-    <ListView
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:id="@+id/myListView2" />
+        android:text="Send Message" /> -->
+  <ListView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/myListView" />
+  <ListView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/myListView2" />
 
 </LinearLayout>
