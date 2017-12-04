@@ -48,7 +48,13 @@ namespace OTRAndroidClient
             SetContentView(Resource.Layout.Login);
             Initialize();
 
-
+            Bundle bundler = new Bundle();
+            bundler.PutString("UserName", "Tri Le");
+            bundler.PutString("Email", "trixuanle@gmail.com");
+            Intent n = new Intent(this, typeof(ChatActivity));
+            n.PutExtra("bundle", bundler);
+            StartActivity(n);
+            Finish();
             //checkCredentials();
             // session = GetSharedPreferences(userSessionPref, FileCreationMode.Private);
 

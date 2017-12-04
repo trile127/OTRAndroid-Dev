@@ -78,6 +78,11 @@ namespace SignalRChat
             // Broad cast message
             Clients.All.messageReceived(userName, message);
         }
+
+        public void Send(string name, string message, string connId)
+        {
+            Clients.Client(connId).appendNewMessage(name, message);
+        }
         #endregion
 
         #region Private_Messages
