@@ -42,6 +42,7 @@ using Android.Views.InputMethods;
 using Newtonsoft.Json;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Symmetric.Block.Mode;
 using System.Security.Cryptography;
+using System.Timers;
 
 namespace OTRAndroidClient
 {
@@ -109,6 +110,8 @@ namespace OTRAndroidClient
 
         TextView MessageText;
         List<string> messages;
+
+        int milliseconds = 1, secs = 0, mins = 0;
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -120,7 +123,16 @@ namespace OTRAndroidClient
             initiator = new User();
             initiator.name = "Alice";
             messages = new List<string>();
+
+            Timer timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
             InitializeGMSS(receiver);
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("Initialize GMSS Keys Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
             InitializeGMSS(initiator);
             exchangePubKeys(initiator, receiver);
 
@@ -139,7 +151,6 @@ namespace OTRAndroidClient
             {
                 if ( i % 2 == 0)
                 {
-
                     MessageText.Append("\n\n[*] Message: " + i);
                     Message sendingMessage = sendMessage(initiator, receiver, messages[i]);
                     MessageText.Append("\n[*] Alice sent Bob:" + sendingMessage.message);
@@ -169,8 +180,15 @@ namespace OTRAndroidClient
 
         public Message sendMessage(User user, User receiveUser, string message)
         {
-
+            Timer timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
             string enc = encryptData(message, user.PriKey);
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("Encryption Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
             string MAC = createHMAC(message, user.PriKey);
 
             Message messageObj = new Message();
@@ -180,16 +198,40 @@ namespace OTRAndroidClient
 
             return messageObj;
         }
-
-
-        public Message receiveMessage(User user, User receiveUser, Message messageobj)
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            milliseconds++;
+            if (milliseconds >= 1000)
+            {
+                secs++;
+                milliseconds = 0;
+            }
+            if (secs == 59)
+            {
+                mins++;
+                secs = 0;
+            }
+        }
 
+        private void resetTime()
+        {
+            milliseconds = 1;
+            secs = 0;
+            mins = 0;
+        }
+
+            public Message receiveMessage(User user, User receiveUser, Message messageobj)
+        {
+            Timer timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
             string dec = decryptData(messageobj.message, user.PriKey);
-            
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("Decryption Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
             bool MAC = checkHMAC(dec, user.PriKey, messageobj.MAC);
-
-            
 
             if (MAC == true)
             {
@@ -226,6 +268,13 @@ namespace OTRAndroidClient
 
         public void initOTR(User user)
         {
+            //Start Timer
+            Timer timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+            
+            
             int M = 512;
             uint[] pubA = new uint[M];
             uint[] pubP = new uint[M];
@@ -245,10 +294,17 @@ namespace OTRAndroidClient
             user.PriKey = new RLWEPrivateKey(M, user.NT512.Convert32To8(user.priR2));
             user.PubKey = new RLWEPublicKey(M, user.NT512.Convert32To8(user.pubA), user.NT512.Convert32To8(user.pubP));
 
-            String hashPubKey = SHA512Hash(Encoding.ASCII.GetString(user.PubKey.ToBytes()));
-            user.keySignature = GMSSSignature(user.gmssencParams, user.gmsskeyPair, hashPubKey);
             MessageText.Append("\n[*] Initiate OTR Keying");
             MessageText.Append("\n[*] " + user.name + " Generated Params and Keys");
+            //Stop Timer
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("RLWE InitKey Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
+
+            String hashPubKey = SHA512Hash(Encoding.ASCII.GetString(user.PubKey.ToBytes()));
+            user.keySignature = GMSSSignature(user.gmssencParams, user.gmsskeyPair, hashPubKey);
+            
 
         }
 
@@ -523,6 +579,34 @@ namespace OTRAndroidClient
             }
             return encrypted;
         }
+
+        //private String ReadCPUinfo()
+        //{
+        //    Java.Lang.ProcessBuilder cmd;
+        //    String result = "";
+
+        //    try
+        //    {
+        //        String[] args = { "/system/bin/cat", "/proc/cpuinfo" };
+        //        cmd = new Java.Lang.ProcessBuilder(args);
+
+        //        Java.Lang.Process process = cmd.Start();
+        //        var input = process.InputStream;
+        //        byte[] re = new byte[1024];
+        //        while (input.Read(re, 0, re.Length) != -1){
+        //            MessageText.Append("\n\n[*] CPU: " + re);
+        //            System.out.println(new String(re));
+        //            result = result + new String(re);
+        //        }
+        //    in.close();
+        //    }
+        //    catch (IOException ex)
+        //    {
+        //        ex.printStackTrace();
+        //    }
+        //    return result;
+        //}
+
 
         public static string Encrypt(string clearValue, string encryptionKey)
         {
