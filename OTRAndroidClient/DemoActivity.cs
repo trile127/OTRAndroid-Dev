@@ -44,6 +44,7 @@ using VTDev.Libraries.CEXEngine.Crypto.Cipher.Symmetric.Block.Mode;
 using System.Security.Cryptography;
 using System.Timers;
 
+
 namespace OTRAndroidClient
 {
 
@@ -67,6 +68,65 @@ namespace OTRAndroidClient
     //    public string keySignature { get; set; }
     //    public string keyMAC { get; set; }
     //}
+
+    public class DeviceInformation
+    {
+        /// <summary>
+        /// Current battery level 0 - 100
+        /// </summary>
+        public int BatteryRemainingChargePercent { get; set; }
+        /// <summary>
+        /// Current battery status like Charging, Discharging, etc.
+        /// </summary>
+        public string BatteryStatus { get; set; }
+        /// <summary>
+        /// Available RAM memory (in bytes).
+        /// </summary>
+        public long AvailableMainMemory { get; set; }
+        /// <summary>
+        /// Total RAM memory (in bytes).
+        /// </summary>
+        public long TotalMainMemory { get; set; }
+        /// <summary>
+        /// If <c>true</c> indicates that the system is low in memory.
+        /// </summary>
+        public bool IsLowMainMemory { get; set; }
+        /// <summary>
+        /// Total size (in bytes) of the internal storage.
+        /// </summary>
+        public long TotalInternalStorage { get; set; }
+        /// <summary>
+        /// Free size (in bytes) in the internal storage.
+        /// It might be different than available size.
+        /// </summary>
+        public long FreeInternalStorage { get; set; }
+        /// <summary>
+        /// Available size (in bytes) in the internal storage.
+        /// It might be different than free size.
+        /// </summary>
+        public long AvailableInternalStorage { get; set; }
+        /// <summary>
+        /// If <c>true</c> indicates that the device has a removable storage.
+        /// </summary>
+        public bool HasRemovableExternalStorage { get; set; }
+        /// <summary>
+        /// If <c>true</c> indicates that the app can write in the removable storage.
+        /// </summary>
+        public bool CanWriteRemovableExternalStorage { get; set; }
+        /// <summary>
+        /// Total size (in bytes) of the removable external storage.
+        /// </summary>
+        public long TotalRemovableExternalStorage { get; set; }
+        /// <summary>
+        /// Available size (in bytes) of the removable external storage.
+        /// </summary>
+        public long AvailableRemovableExternalStorage { get; set; }
+        /// <summary>
+        /// Free size (in bytes) of the removable external storage.
+        /// </summary>
+        public long FreeRemovableExternalStorage { get; set; }
+
+    }
 
     public class User
     {
@@ -128,10 +188,14 @@ namespace OTRAndroidClient
             timer.Interval = 1; // 1 milliseconds  
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
+            MessageText.Append("\n[*] Memory Usage Before Generating GMSS KeyPair");
+            getDeviceMemoryUsage();
             InitializeGMSS(receiver);
+            MessageText.Append("\n[*] Memory Usage After Generating GMSS");
+            getDeviceMemoryUsage();
             timer.Stop();
             timer.Dispose();
-            MessageText.Append("Initialize GMSS Keys Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            MessageText.Append("\nInitialize GMSS Keys Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
             resetTime();
             InitializeGMSS(initiator);
             exchangePubKeys(initiator, receiver);
@@ -143,22 +207,45 @@ namespace OTRAndroidClient
             messages.Add("Message 6");
             messages.Add("Message 7");
 
+            timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
             initOTR(initiator);
             receiverOTR(initiator, receiver);
             endOTR(initiator, receiver);
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("Total OTR Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
 
             for (int i = 0; i < messages.Count; i++)
             {
-                if ( i % 2 == 0)
+                if (i % 2 == 0)
                 {
                     MessageText.Append("\n\n[*] Message: " + i);
                     Message sendingMessage = sendMessage(initiator, receiver, messages[i]);
                     MessageText.Append("\n[*] Alice sent Bob:" + sendingMessage.message);
                     Message receivingMessage = receiveMessage(initiator, receiver, sendingMessage);
                     MessageText.Append("\n[*] Bob decrypted:" + receivingMessage.message);
+                    if (i == 0) // Do timer one time
+                    {
+                        timer = new Timer();
+                        timer.Interval = 1; // 1 milliseconds  
+                        timer.Elapsed += Timer_Elapsed;
+                        timer.Start();
+                    }
                     initReKey(initiator);
                     receiveReKeying(initiator, receiver);
                     endReKey(initiator, receiver);
+
+                    if (i == 0)
+                    {
+                        timer.Stop();
+                        timer.Dispose();
+                        MessageText.Append("Total OTR Re-Key Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+                        resetTime();
+                    }
                 }
                 else
                 {
@@ -171,8 +258,10 @@ namespace OTRAndroidClient
                     receiveReKeying(receiver, initiator);
                     endReKey(receiver, initiator);
 
-                } 
+                }
             }
+            MessageText.Append("\n[*] Memory Usage End of Transmission");
+            getDeviceMemoryUsage();
 
 
 
@@ -220,7 +309,7 @@ namespace OTRAndroidClient
             mins = 0;
         }
 
-            public Message receiveMessage(User user, User receiveUser, Message messageobj)
+        public Message receiveMessage(User user, User receiveUser, Message messageobj)
         {
             Timer timer = new Timer();
             timer.Interval = 1; // 1 milliseconds  
@@ -229,7 +318,7 @@ namespace OTRAndroidClient
             string dec = decryptData(messageobj.message, user.PriKey);
             timer.Stop();
             timer.Dispose();
-            MessageText.Append("Decryption Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            MessageText.Append("\nDecryption Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
             resetTime();
             bool MAC = checkHMAC(dec, user.PriKey, messageobj.MAC);
 
@@ -254,7 +343,7 @@ namespace OTRAndroidClient
             user.gmssencParams = (GMSSParameters)GMSSParamSets.GMSSN2P10.DeepCopy();
             user.gmssgen = new GMSSKeyGenerator(user.gmssencParams);
             user.gmsskeyPair = user.gmssgen.GenerateKeyPair();
-            MessageText.Append("\n[*] " +user.name +"Generated GMSS Keys");
+            MessageText.Append("\n[*] " + user.name + "Generated GMSS Keys");
 
         }
 
@@ -273,8 +362,9 @@ namespace OTRAndroidClient
             timer.Interval = 1; // 1 milliseconds  
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
-            
-            
+
+            MessageText.Append("\n[*] Memory Usage Before InitRLWE Keys");
+            getDeviceMemoryUsage();
             int M = 512;
             uint[] pubA = new uint[M];
             uint[] pubP = new uint[M];
@@ -296,16 +386,29 @@ namespace OTRAndroidClient
 
             MessageText.Append("\n[*] Initiate OTR Keying");
             MessageText.Append("\n[*] " + user.name + " Generated Params and Keys");
+            MessageText.Append("\n[*] Memory Usage After InitRLWE Keys");
+            getDeviceMemoryUsage();
             //Stop Timer
             timer.Stop();
             timer.Dispose();
-            MessageText.Append("RLWE InitKey Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            MessageText.Append("\nRLWE InitKey RLWE Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
             resetTime();
 
+            timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+
+            MessageText.Append("\n[*] Memory Usage Before Generating Signature");
+            getDeviceMemoryUsage();
             String hashPubKey = SHA512Hash(Encoding.ASCII.GetString(user.PubKey.ToBytes()));
             user.keySignature = GMSSSignature(user.gmssencParams, user.gmsskeyPair, hashPubKey);
-            
-
+            MessageText.Append("\n[*] Memory Usage After Generating Signature");
+            getDeviceMemoryUsage();
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("\nGMSS Signature Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
         }
 
         public void receiverOTR(User user, User receiveUser)
@@ -404,8 +507,12 @@ namespace OTRAndroidClient
             user.PriKey = new RLWEPrivateKey(M, user.NT512.Convert32To8(user.priR2));
             user.PubKey = new RLWEPublicKey(M, user.NT512.Convert32To8(user.pubA), user.NT512.Convert32To8(user.pubP));
 
-            user.keyMAC = createHMAC(Encoding.ASCII.GetString(user.PubKey.ToBytes()), user.PriKey);
             MessageText.Append("\n[*] " + user.name + " Initiated Re-Keying");
+
+            user.keyMAC = createHMAC(Encoding.ASCII.GetString(user.PubKey.ToBytes()), user.PriKey);
+
+            resetTime();
+
         }
         public void receiveReKeying(User user, User receiveUser)
         {
@@ -497,7 +604,7 @@ namespace OTRAndroidClient
                 mac.Initialize(keyBytes, null);
                 // get mac
                 Output = mac.ComputeMac(Encoding.ASCII.GetBytes(data));
-                
+
             }
             if (Encoding.ASCII.GetString(Output) == MAC)
             {
@@ -657,16 +764,193 @@ namespace OTRAndroidClient
         public string encryptData(string data, RLWEPrivateKey privateKey)
         {
             string Key = Encoding.ASCII.GetString(privateKey.ToBytes());
-            String encryptedText = Encrypt(data, Key);
+            string encryptedText = Encrypt(data, Key);
             return encryptedText;
         }
 
         public string decryptData(string encData, RLWEPrivateKey privateKey)
         {
             string Key = Encoding.ASCII.GetString(privateKey.ToBytes());
-            String encryptedText = Decrypt(encData, Key);
+            string encryptedText = Decrypt(encData, Key);
             return encryptedText;
         }
+
+        public void getDeviceMemoryUsage()
+        {
+            //DeviceInformation devInfo = new DeviceInformation();
+            ////* Gets the main memory (RAM) information.
+            //var activityManager = (ActivityManager)Forms.Context.GetSystemService(Context.ActivityService);
+
+            //ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+            //activityManager.GetMemoryInfo(memInfo);
+
+            long freeSize;
+            long totalSize;
+            long usedSize;
+            try
+            {
+                Java.Lang.Runtime info = Java.Lang.Runtime.GetRuntime();
+                freeSize = info.FreeMemory();
+                totalSize = info.TotalMemory();
+                usedSize = totalSize - freeSize;
+                //MessageText.Append("\nGetDeviceInfo - Avail {0} - {1} MB", (int)freeSize, (int)freeSize / 1024 / 1024);
+                MessageText.Append("\nGetDeviceInfo - Used: " + (int)((usedSize & 0xFFFFFFFF) / 1024) + " KB");
+                MessageText.Append("\nGetDeviceInfo - Available: " + (int)((freeSize & 0xFFFFFFFF) / 1024) + " KB");
+                //MessageText.Append("\nGetDeviceInfo - Total {0} - {1} MB", (int)totalSize, (int)totalSize / 1024 / 1024);
+            }
+            catch (Java.Lang.Exception e)
+            {
+                e.PrintStackTrace();
+            }
+            //return usedSize;
+            //MessageText.Append("\nGetDeviceInfo - Avail {0} - {1} MB", memInfo.AvailMem, memInfo.AvailMem / 1024 / 1024);
+            //MessageText.Append("\nGetDeviceInfo - Low {0}", memInfo.LowMemory);
+            //MessageText.Append("\nGetDeviceInfo - Total {0} - {1} MB", memInfo.TotalMem, memInfo.TotalMem / 1024 / 1024);
+            //// System.Diagnostics.Debug.WriteLine ("GetDeviceInfo - Avail {0} - {1} MB", memInfo.AvailMem, memInfo.AvailMem / 1024 / 1024);
+            //// System.Diagnostics.Debug.WriteLine ("GetDeviceInfo - Low {0}", memInfo.LowMemory);
+            //// System.Diagnostics.Debug.WriteLine ("GetDeviceInfo - Total {0} - {1} MB", memInfo.TotalMem, memInfo.TotalMem / 1024 / 1024);
+
+        }
+
+     
+
+        //public async Task GetDeviceInformation()
+        //{
+        //    DeviceInformation devInfo = new DeviceInformation();
+        //    //* Gets the main memory (RAM) information.
+        //    var activityManager = (ActivityManager)Forms.Context.GetSystemService(Context.ActivityService);
+
+        //    ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+        //    activityManager.GetMemoryInfo(memInfo);
+
+        //    System.Diagnostics.Debug.WriteLine("GetDeviceInfo - Avail {0} - {1} MB", memInfo.AvailMem, memInfo.AvailMem / 1024 / 1024);
+        //    System.Diagnostics.Debug.WriteLine("GetDeviceInfo - Low {0}", memInfo.LowMemory);
+        //    System.Diagnostics.Debug.WriteLine("GetDeviceInfo - Total {0} - {1} MB", memInfo.TotalMem, memInfo.TotalMem / 1024 / 1024);
+
+        //    devInfo.AvailableMainMemory = memInfo.AvailMem;
+        //    devInfo.IsLowMainMemory = memInfo.LowMemory;
+        //    devInfo.TotalMainMemory = memInfo.TotalMem;
+
+        //    //* Gets the internal storage information.
+        //    StorageInfo internalStorageInfo = this.GetStorageInformation(Environment.GetExternalStoragePublicDirectory("").ToString());
+
+        //    devInfo.TotalInternalStorage = internalStorageInfo.TotalSpace;
+        //    devInfo.AvailableInternalStorage = internalStorageInfo.AvailableSpace;
+        //    devInfo.FreeInternalStorage = internalStorageInfo.FreeSpace;
+
+        //    string extStorage = await this.RemovableStoragePath();
+
+        //    devInfo.HasRemovableExternalStorage = !String.IsNullOrEmpty(extStorage);
+
+        //    if (devInfo.HasRemovableExternalStorage)
+        //    {
+        //        bool canWrite = await this.IsWriteable(extStorage);
+        //        devInfo.CanWriteRemovableExternalStorage = canWrite;
+
+        //        //* Gets the external removable storage information.
+        //        StorageInfo removableStorageInfo = this.GetStorageInformation(Environment.GetExternalStoragePublicDirectory("").ToString());
+        //        devInfo.TotalRemovableExternalStorage = removableStorageInfo.TotalSpace;
+        //        devInfo.FreeRemovableExternalStorage = removableStorageInfo.FreeSpace;
+        //        devInfo.AvailableRemovableExternalStorage = removableStorageInfo.AvailableSpace;
+
+        //    }
+        //    else
+        //    {
+        //        devInfo.CanWriteRemovableExternalStorage = false;
+        //        devInfo.TotalRemovableExternalStorage = 0;
+        //        devInfo.FreeRemovableExternalStorage = 0;
+        //        devInfo.AvailableRemovableExternalStorage = 0;
+        //    }
+        //    return devInfo;
+        //}
+
+        //protected StorageInfo GetStorageInformation(string path)
+        //{
+        //    StorageInfo storageInfo = new StorageInfo();
+
+        //    StatFs stat = new StatFs(path); //"/storage/sdcard1"
+        //    long totalSpaceBytes = 0;
+        //    long freeSpaceBytes = 0;
+        //    long availableSpaceBytes = 0;
+
+        //    /*
+        //    We have to do the check for the Android version, because the OS calls being made have been deprecated for older versions. 
+        //    The ‘old style’, pre Android level 18 didn’t use the Long suffixes, so if you try and call use those on 
+        //    anything below Android 4.3, it’ll crash on you, telling you that that those methods are unavailable. 
+        //    http://blog.wislon.io/posts/2014/09/28/xamarin-and-android-how-to-use-your-external-removable-sd-card/
+        //    */
+        //    if (Build.VERSION.SdkInt >= BuildVersionCodes.JellyBeanMr2)
+        //    {
+        //        long blockSize = stat.BlockSizeLong;
+        //        totalSpaceBytes = stat.BlockCountLong * stat.BlockSizeLong;
+        //        availableSpaceBytes = stat.AvailableBlocksLong * stat.BlockSizeLong;
+        //        freeSpaceBytes = stat.FreeBlocksLong * stat.BlockSizeLong;
+        //    }
+        //    else
+        //    {
+
+        //        totalSpaceBytes = (long)stat.BlockCount * (long)stat.BlockSize;
+        //        availableSpaceBytes = (long)stat.AvailableBlocks * (long)stat.BlockSize;
+        //        freeSpaceBytes = (long)stat.FreeBlocks * (long)stat.BlockSize;
+        //    }
+
+        //    storageInfo.TotalSpace = totalSpaceBytes;
+        //    storageInfo.AvailableSpace = availableSpaceBytes;
+        //    storageInfo.FreeSpace = freeSpaceBytes;
+        //    return storageInfo;
+
+        //}
+
+        //private Task<string> RemovableStoragePath()
+        //{
+        //    return Task.Run(() => {
+        //        //* Tries to detect if there is a removable storage.
+        //        //* http://blog.wislon.io/posts/2014/09/28/xamarin-and-android-how-to-use-your-external-removable-sd-card/
+        //        string procMounts = System.IO.File.ReadAllText("/proc/mounts");
+        //        System.Diagnostics.Debug.WriteLine("begin /proc/mounts");
+        //        System.Diagnostics.Debug.WriteLine(procMounts);
+        //        System.Diagnostics.Debug.WriteLine("end /proc/mounts");
+        //        var candidateProcMountEntries = procMounts.Split('\n', '\r').ToList();
+        //        candidateProcMountEntries.RemoveAll(s => s.IndexOf("storage", StringComparison.OrdinalIgnoreCase) < 0);
+        //        var bestCandidate = candidateProcMountEntries
+        //            .FirstOrDefault(s => s.IndexOf("ext", StringComparison.OrdinalIgnoreCase) >= 0
+        //                && s.IndexOf("sd", StringComparison.OrdinalIgnoreCase) >= 0
+        //                && s.IndexOf("vfat", StringComparison.OrdinalIgnoreCase) >= 0);
+
+        //        // e.g. /dev/block/vold/179:9 /storage/extSdCard vfat rw,dirsync,nosuid, blah
+        //        if (!string.IsNullOrWhiteSpace(bestCandidate))
+        //        {
+        //            var sdCardEntries = bestCandidate.Split(' ');
+        //            var sdCardEntry = sdCardEntries.FirstOrDefault(s => s.IndexOf("/storage/", System.StringComparison.OrdinalIgnoreCase) >= 0);
+        //            System.Diagnostics.Debug.WriteLine("It has removable storage {0}", !string.IsNullOrWhiteSpace(sdCardEntry) ? string.Format("{0}", sdCardEntry) : string.Empty);
+        //            return !string.IsNullOrWhiteSpace(sdCardEntry) ? string.Format("{0}", sdCardEntry) : string.Empty;
+        //        }
+        //        return string.Empty;
+        //    });
+        //}
+
+        //private Task<bool> IsWriteable(string path)
+        //{
+
+        //    return Task.Run(() => {
+        //        bool result = false;
+        //        try
+        //        {
+
+        //            const string someTestText = "some test text";
+        //            string testFile = string.Format("{0}/{1}.txt", path, Guid.NewGuid());
+        //            System.IO.File.WriteAllText(testFile, someTestText);
+        //            System.IO.File.Delete(testFile);
+        //            result = true;
+        //        }
+        //        catch (Exception ex)
+        //        { // it's not writeable
+        //            System.Diagnostics.Debug.WriteLine("ExternalSDStorageHelper", string.Format("Exception: {0}\r\nMessage: {1}\r\nStack Trace: {2}", ex, ex.Message, ex.StackTrace));
+        //        }
+
+        //        return result;
+        //    });
+        //}
 
     }
 }
