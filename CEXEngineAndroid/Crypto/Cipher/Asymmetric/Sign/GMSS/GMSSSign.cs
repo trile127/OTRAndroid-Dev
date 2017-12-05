@@ -71,6 +71,8 @@ namespace VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS
     ///     sign.Initialize(kp.PrivateKey);
     ///     code = sign.Sign(data, 0, data.Length);
     /// }
+    /// // data = hashed publicKey
+    /// // code  = signature
     ///
     /// // test the message for validity
     /// using (GMSSSign sign = new GMSSSign(kpm))

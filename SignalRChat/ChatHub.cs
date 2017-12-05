@@ -9,18 +9,8 @@ using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithmetic;
 
 
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Interfaces;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Arithmetic;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Polynomial;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Curve;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU.Encode;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS.Utility;
-using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS.Arithmetic;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Sign.GMSS;
-using VTDev.Libraries.CEXEngine.Crypto.Common;
-using VTDev.Libraries.CEXEngine.Crypto.Enumeration;
-using VTDev.Libraries.CEXEngine.Crypto.Prng;
+
 namespace SignalRChat
 {
     public class ChatHub : Hub
@@ -160,6 +150,8 @@ namespace SignalRChat
                 {
                     // send to 
                     Clients.Client(toUserId).receiveParams(fromUser, parameters, random, pubKey);
+
+                    //Clients.Caller(toUserId).calledInitOTR(fromUser, parameters, random, pubKey);
                 }
             }
         }

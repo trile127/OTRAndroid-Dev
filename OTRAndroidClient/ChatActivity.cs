@@ -100,12 +100,14 @@ namespace OTRAndroidClient
             Bundle bundler = Intent.GetBundleExtra("bundle");
             UserName = bundler.GetString("UserName");
             Email = bundler.GetString("Email");
-            
+
             isConnected = false;
             // Connect to the server
             hubConnection = new HubConnection("http://offtherecordfinal.azurewebsites.net/");
             // Create a proxy to the 'ChatHub' SignalR Hub
             chatHubProxy = hubConnection.CreateHubProxy("ChatHub");
+            String errors = "";
+            hubConnection.Error += ex => errors = ex.Message;
 
             Connect();
             
@@ -154,19 +156,32 @@ namespace OTRAndroidClient
 
                 chatHubProxy.On<string, string, string>("onNewUserConnected", (connectionID, UserName, Email) =>
                 {
-                    AddUser(chatHubProxy, connectionID, UserName, Email);
-                    adapter.Clear();
-                    foreach (var item in myListItems)
+
+                    for (int i = 0; i < myUsers.Count; i++)
                     {
-                        adapter.Insert(item, adapter.Count);
+                        if (myUsers[i].EmailID != Email && connectionID != myUsers[i].ConnectionID && UserName != myUsers[i].UserName)
+                            AddUser(chatHubProxy, connectionID, UserName, Email);
                     }
-                    adapter.NotifyDataSetChanged();
+
+
+                    //updateListView();
+                    //adapter.Clear();
+
+                    //for (int i = 0; i < myListItems.Count; i++)
+                    //{
+                    //    if (UserName == myListItems[i])
+                    //    {
+                    //        adapter.Insert(myListItems[i], i);
+                    //    }
+                    //}
+                    //adapter.NotifyDataSetChanged();
                 }
                 );
 
                 chatHubProxy.On<string, string>("onUserDisconnected", (connectionID, UserName) =>
                 {
                     myListItems.Remove(UserName);
+                    updateListView();
                     //adapter.Clear();
                     //foreach (var item in myListItems)
                     //{
@@ -199,32 +214,32 @@ namespace OTRAndroidClient
                     OpenPrivateMessageAsync(toUserDetails.ConnectionID, toUserDetails.UserName, toUserDetails.EmailID);
                     getPrivateMessages(fromUserDetails.ConnectionID, toUserDetails.EmailID);
                 //privateadapter.NotifyDataSetChanged();
-            }
+                }
                 );
 
-                chatHubProxy.On<ChatUserDetail, RLWEPublicKey, RLWEParameters, int>("receiveParams", (fromUser, pubKey, parameters, random) =>
-                 {
-                     for (int i = 0; i < myUsers.Count; i++)
-                     {
-                         if (myUsers[i].UserName == fromUser.UserName)
-                         {
-                             Bundle bundle = new Bundle();
-                             bundle.PutString("UserName", myUsers[i].UserName);
-                             bundle.PutString("Email", myUsers[i].EmailID);
-                             bundle.PutString("ConnectionID", myUsers[i].ConnectionID);
-                             bundle.PutString("OTRINIT", "TRUE");
-                             Intent n = new Intent(this, typeof(PrivateMessagingActivity));
-                             n.PutExtra("bundle", bundle);
-                             n.PutExtra("PubKey", JsonConvert.SerializeObject(pubKey));
-                             n.PutExtra("Random", random);
-                             n.PutExtra("Parameters", JsonConvert.SerializeObject(parameters));
-                             StartActivity(n);
-                             Finish();
+                //chatHubProxy.On<ChatUserDetail, RLWEParameters, int, RLWEPublicKey>("receiveParams", (fromUser, parameters, random, pubKey) =>
+                //{
+                //     for (int i = 0; i < myUsers.Count; i++)
+                //     {
+                //         if (myUsers[i].UserName == fromUser.UserName)
+                //         {
+                //             Bundle bundle = new Bundle();
+                //             bundle.PutString("UserName", myUsers[i].UserName);
+                //             bundle.PutString("Email", myUsers[i].EmailID);
+                //             bundle.PutString("ConnectionID", myUsers[i].ConnectionID);
+                //             bundle.PutString("OTRINIT", "TRUE");
+                //             Intent n = new Intent(this, typeof(PrivateMessagingActivity));
+                //             n.PutExtra("bundle", bundle);
+                //             n.PutExtra("PubKey", JsonConvert.SerializeObject(pubKey));
+                //             n.PutExtra("Random", random);
+                //             n.PutExtra("Parameters", JsonConvert.SerializeObject(parameters));
+                //             StartActivity(n);
+                //             Finish();
 
-                         }
-                     }
-                 }
-                );
+                //         }
+                //     }
+                // }
+                //);
 
                 await hubConnection.Start();
 
@@ -326,9 +341,13 @@ namespace OTRAndroidClient
                 if (myListItems[e.Position] == myUsers[i].UserName)
                 {
                     Bundle bundle = new Bundle();
-                    bundle.PutString("UserName", myUsers[i].UserName);
-                    bundle.PutString("Email", myUsers[i].EmailID);
-                    bundle.PutString("ConnectionID", myUsers[i].ConnectionID);
+                    bundle.PutString("toUserName", myUsers[i].UserName);
+                    bundle.PutString("toEmail", myUsers[i].EmailID);
+                    bundle.PutString("toConnectionID", myUsers[i].ConnectionID);
+                    bundle.PutString("UserName", UserName);
+                    bundle.PutString("Email", Email);
+                    bundle.PutString("ConnectionID", myconnectionID);
+
                     bundle.PutString("OTRINIT", "FALSE");
                     Intent n = new Intent(this, typeof(PrivateMessagingActivity));
                     n.PutExtra("bundle", bundle);
@@ -342,6 +361,8 @@ namespace OTRAndroidClient
 
 
         }
+
+
 
         public void InitializeNTRU()
         {

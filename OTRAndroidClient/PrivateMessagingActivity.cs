@@ -12,12 +12,12 @@ using Android.Widget;
 using Microsoft.AspNet.SignalR.Client;
 using Android;
 
+
 using EntityFrameworkWithXamarin.Core;
 using System.Threading.Tasks;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.RLWE.Arithmetic;
-
 
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Interfaces;
 using VTDev.Libraries.CEXEngine.Crypto.Cipher.Asymmetric.Encrypt.NTRU;
@@ -32,11 +32,16 @@ using VTDev.Libraries.CEXEngine.Crypto.Common;
 using VTDev.Libraries.CEXEngine.Crypto.Enumeration;
 using VTDev.Libraries.CEXEngine.Crypto.Prng;
 using VTDev.Libraries.CEXEngine.CryptoException;
-
+using VTDev.Libraries.CEXEngine.Crypto.Digest;
+using VTDev.Libraries.CEXEngine.Crypto.Kdf;
+using VTDev.Libraries.CEXEngine.Crypto.Mac;
+using VTDev.Libraries.CEXEngine.Crypto.Generator;
 using System.IO;
 using VTDev.Libraries.CEXEngine.Utility;
 using Android.Views.InputMethods;
 using Newtonsoft.Json;
+using VTDev.Libraries.CEXEngine.Crypto.Cipher.Symmetric.Block.Mode;
+using System.Security.Cryptography;
 
 namespace OTRAndroidClient
 {
@@ -46,7 +51,8 @@ namespace OTRAndroidClient
 
         String UserName;
         String Email;
-        int userID;
+        String myUserName;
+        String myEmail;
         String myconnectionID;
         String toconnectionID;
         String otrInit;
@@ -109,14 +115,21 @@ namespace OTRAndroidClient
             toconnectionID = bundler.GetString("ConnectionID");
             otrInit = bundler.GetString("OTRINIT");
 
+            myUserName = bundler.GetString("UserName");
+            myEmail = bundler.GetString("Email");
+            myconnectionID = bundler.GetString("ConnectionID");
 
             privChatUser.Text = UserName;
 
             privateadapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem2, myListItems);
             messages.Adapter = privateadapter;
 
-            hub = ChatActivity.hubConnection;
-            proxy = ChatActivity.chatHubProxy;
+            //hub = ChatActivity.hubConnection;
+            //proxy = ChatActivity.chatHubProxy;
+            hub = new HubConnection("http://offtherecordfinal.azurewebsites.net/");
+            proxy = hub.CreateHubProxy("ChatHub");
+            hub.Error += ex => MessageText.Append("SignalR error: " + ex.Message);
+
             Connect();
             // Create your application here
             inputManager = (InputMethodManager)GetSystemService(InputMethodService);
@@ -134,11 +147,12 @@ namespace OTRAndroidClient
                   {
                       MessageText.Append("OTR connection not completed yet!");
                       proxy.Invoke<List<PrivateChatMessage>>("SendPrivateMessage", toconnectionID, input.Text, "Click");
-                      return;
                   }
                   else
                   {
                       String encData = encryptData(input.Text.Trim());
+
+                      String decData = decryptData(input.Text.Trim(), input.Text.Trim().Length);
                       MessageText.Append(UserName + ": " + input.Text.Trim());
                       proxy.Invoke("SendEncryptedPrivateMessage", toconnectionID, encData, "Click", input.Text.Trim().Length);
                       initReKey();
@@ -178,32 +192,188 @@ namespace OTRAndroidClient
             //adapter.NotifyDataSetChanged();
         }
 
+        private static byte[] CreateKey(string password, int keyBytes = 32)
+        {
+            byte[] salt = new byte[] { 80, 70, 60, 50, 40, 30, 20, 10 };
+            int iterations = 300;
+            var keyGenerator = new Rfc2898DeriveBytes(password, salt, iterations);
+            return keyGenerator.GetBytes(keyBytes);
+        }
+
+        private static byte[] AesEncryptStringToBytes(string plainText, byte[] key, byte[] iv)
+        {
+            if (plainText == null || plainText.Length <= 0)
+                throw new ArgumentNullException($"{nameof(plainText)}");
+            if (key == null || key.Length <= 0)
+                throw new ArgumentNullException($"{nameof(key)}");
+            if (iv == null || iv.Length <= 0)
+                throw new ArgumentNullException($"{nameof(iv)}");
+
+            byte[] encrypted;
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    using (ICryptoTransform encryptor = aes.CreateEncryptor())
+                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                    using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
+                    {
+                        streamWriter.Write(plainText);
+                    }
+                    encrypted = memoryStream.ToArray();
+                }
+            }
+            return encrypted;
+        }
+
+        public static string Encrypt(string clearValue, string encryptionKey)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = CreateKey(encryptionKey);
+
+                byte[] encrypted = AesEncryptStringToBytes(clearValue, aes.Key, aes.IV);
+                return Convert.ToBase64String(encrypted) + ";" + Convert.ToBase64String(aes.IV);
+            }
+        }
+
+        public static string Decrypt(string encryptedValue, string encryptionKey)
+        {
+            string iv = encryptedValue.Substring(encryptedValue.IndexOf(';') + 1, encryptedValue.Length - encryptedValue.IndexOf(';') - 1);
+            encryptedValue = encryptedValue.Substring(0, encryptedValue.IndexOf(';'));
+
+            return AesDecryptStringFromBytes(Convert.FromBase64String(encryptedValue), CreateKey(encryptionKey), Convert.FromBase64String(iv));
+        }
+
+        private static string AesDecryptStringFromBytes(byte[] cipherText, byte[] key, byte[] iv)
+        {
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException($"{nameof(cipherText)}");
+            if (key == null || key.Length <= 0)
+                throw new ArgumentNullException($"{nameof(key)}");
+            if (iv == null || iv.Length <= 0)
+                throw new ArgumentNullException($"{nameof(iv)}");
+
+            string plaintext = null;
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+
+                using (MemoryStream memoryStream = new MemoryStream(cipherText))
+                using (ICryptoTransform decryptor = aes.CreateDecryptor())
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                using (StreamReader streamReader = new StreamReader(cryptoStream))
+                    plaintext = streamReader.ReadToEnd();
+
+            }
+            return plaintext;
+        }
+
+
         public string encryptData(string data)
         {
             byte[] toBytes = Encoding.ASCII.GetBytes(data);
-            byte[] enc;
-            // encrypt an array
-            using (RLWEEncrypt cipher = new RLWEEncrypt(myParameters))
+            byte[] enc = new byte[2048];
+            byte[] IV;
+            byte[] hashedKey;
+
+
+            
+            //encrypt an array
+            using (IDigest hash = new VTDev.Libraries.CEXEngine.Crypto.Digest.SHA512())
             {
-                cipher.Initialize(receiverpubKey);
-                enc = cipher.Encrypt(toBytes);
+                // compute a hash
+                //IV = hash.ComputeHash(mypubKey.ToBytes());
+                hashedKey = hash.ComputeHash(mypubKey.ToBytes());
             }
-            return Encoding.ASCII.GetString(enc);
+
+            using (IDigest hash = new VTDev.Libraries.CEXEngine.Crypto.Digest.SHA256())
+            {
+                IV = hash.ComputeHash(mypubKey.ToBytes());
+            }
+
+            String encryptedText = Encrypt(data, Encoding.ASCII.GetString(hashedKey));
+
+            String decryptedText = Decrypt(encryptedText, Encoding.ASCII.GetString(hashedKey));
+
+            //using (ICipherMode cipher = new CTR(BlockCiphers.RHX))
+            //{
+
+            //    KeyParams keyParameters = new KeyParams(hashedKey, IV);
+            //    var sevenItems = new byte[] { 0x00 };
+            //    keyParameters.IKM = sevenItems;
+            //    // initialize for encryption
+            //    cipher.Initialize(true, keyParameters);
+            //    // encrypt a block
+            //    cipher.Transform(toBytes, 0, enc, 0);
+            //}
+
+            //using (IDigest hash = new SHA512())
+            //{
+            //    // compute a hash
+            //    IV = hash.ComputeHash(mypubKey.ToBytes());
+            //    hashedKey = hash.ComputeHash(mypubKey.ToBytes());
+            //}
+
+
+            //using (ICipherMode cipher = new CTR(BlockCiphers.RHX))
+            //{
+            //    // initialize for encryption
+            //    cipher.Initialize(true, new KeyParams(hashedKey, IV));
+            //    // encrypt a block
+            //    cipher.Transform(toBytes, 0, enc, 0);
+            //}
+
+            //using (RLWEEncrypt cipher = new RLWEEncrypt(myParameters))
+            //{
+            //    cipher.Initialize(receiverpubKey);
+            //    enc = cipher.Encrypt(toBytes);
+            //}
+            String encryptedData = Encoding.ASCII.GetString(enc);
+            return encryptedText;
         }
+
+
 
         public string decryptData(string data, int length)
         {
             byte[] toBytes = Encoding.ASCII.GetBytes(data);
-            byte[] dec;
-            // encrypt an array
-            using (RLWEEncrypt cipher = new RLWEEncrypt(myParameters))
+            byte[] dec = new byte[2048];
+            byte[] hashedKey;
+            byte[] IV;
+            using (IDigest hash = new VTDev.Libraries.CEXEngine.Crypto.Digest.SHA512())
             {
-                cipher.Initialize(priKey);
-                dec = cipher.Encrypt(toBytes);
+                // compute a hash
+                IV = hash.ComputeHash(mypubKey.ToBytes());
+                hashedKey = hash.ComputeHash(mypubKey.ToBytes());
             }
+
+            String decryptedText = Decrypt(data, Encoding.ASCII.GetString(hashedKey));
+
+
+            //using (ICipherMode cipher = new CTR(BlockCiphers.RHX))
+            //{
+            //    cipher.Initialize(false, new KeyParams(hashedKey, IV));
+            //    // decrypt a block
+            //    cipher.Transform(toBytes, 0, dec, 0);
+            //}
+
+
+            //// encrypt an array
+            //using (RLWEEncrypt cipher = new RLWEEncrypt(myParameters))
+            //{
+            //    cipher.Initialize(priKey);
+            //    dec = cipher.Encrypt(toBytes);
+            //}
             String decryptedData = Encoding.ASCII.GetString(dec);
             decryptedData = decryptedData.Substring(0, length);
-            return decryptedData;
+            return decryptedText;
         }
 
         public async Task Connect()
@@ -212,11 +382,26 @@ namespace OTRAndroidClient
             {
                 proxy.On<string, string, List<ChatUserDetail>, List<ChatMessageDetail>>("onConnected", (connectionID, UserName, allUsers, messages) =>
                 {
-                    myconnectionID = connectionID;
+                    if (myconnectionID != connectionID)
+                    {
+                        myconnectionID = connectionID;
+                    }
                     myUsers = allUsers;
                     myMessages = messages;
                 }
                 );
+
+                proxy.On<string, string, string>("onNewUserConnected", (connectionID, UserName, Email) =>
+                {
+                    MessageText.Append("\nNew User Connected: " + connectionID + " Name: " + UserName);
+
+
+                    //updateListView();
+                    //adapter.Clear();
+
+                }
+              );
+
 
                 proxy.On<ChatUserDetail, ChatUserDetail, string, string>("sendPrivateMessage2", (fromUserDetails, toUserDetails, status, fromUserId) =>
                 {
@@ -243,11 +428,19 @@ namespace OTRAndroidClient
                 }
                 );
 
-                proxy.On<ChatUserDetail, RLWEPublicKey, RLWEParameters, int>("receiveParams", (fromUser, pubKey, parameters, random) =>
+                proxy.On<ChatUserDetail, RLWEParameters, int, RLWEPublicKey>("receiveParams", (fromUser, parameters, random, pubKey) =>
                 {
                     receiveOTR(parameters, random, pubKey);
                 }
                 );
+
+                proxy.On<ChatUserDetail, RLWEParameters, int, RLWEPublicKey>("calledInitOTR", (fromUser, parameters, random, pubKey) =>
+                {
+                    MessageText.Append("\nCalledInitOTR" + fromUser.UserName + ": " + random);
+                }
+               );
+
+                
 
                 proxy.On<RLWEPublicKey>("endOTR", (pubKey) =>
                 {
@@ -272,6 +465,17 @@ namespace OTRAndroidClient
                     setReceiverGMSSPubKey(pubKey);
                 }
                 );
+
+                await hub.Start();
+
+                if (hub.State == ConnectionState.Connected)
+                {
+
+                    await proxy.Invoke("Connect", UserName, Email);
+
+                }
+
+
             }
             //proxy.Invoke<List<PrivateChatMessage>>("SendPrivateMessage", toconnectionID, input.Text, "Click");
             catch (Exception ex)
@@ -303,7 +507,16 @@ namespace OTRAndroidClient
 
         public async Task sentInitOTR()
         {
-            proxy.Invoke("InitOTR", toconnectionID, myParameters, r, initiatorpubKey);
+
+            try
+            {
+                proxy.Invoke("InitOTR", toconnectionID, myParameters, r, initiatorpubKey);
+
+            }
+            catch (Exception ex)
+            {
+                MessageText.Append("Error invoking InitOTR: " + ex.Message);
+            }
         }
 
         public async Task receiveOTR(RLWEParameters parameters, int random, RLWEPublicKey initPubKey)
@@ -332,7 +545,15 @@ namespace OTRAndroidClient
 
         public async Task sentReceiveOTR()
         {
-            proxy.Invoke("receiverSendOTR", toconnectionID, receiverpubKey);
+            try
+            {
+                proxy.Invoke("receiverSendOTR", toconnectionID, receiverpubKey);
+
+            }
+            catch (Exception ex)
+            {
+                MessageText.Append("Error invoking receiverSendOTR: " + ex.Message);
+            }
 
         }
 
@@ -355,7 +576,16 @@ namespace OTRAndroidClient
             priKey = new RLWEPrivateKey(M, ntt512Test.Convert32To8(recpriR2));
             mypubKey = new RLWEPublicKey(M, ntt512Test.Convert32To8(recpubA), ntt512Test.Convert32To8(recpubP));
             MessageText.Append("\n[*] Rekey Protocol Initiated!");
-            proxy.Invoke("initReKey", toconnectionID, r, mypubKey);
+
+            try
+            {
+                proxy.Invoke("initReKey", toconnectionID, r, mypubKey);
+
+            }
+            catch (Exception ex)
+            {
+                MessageText.Append("Error invoking initReKey: " + ex.Message);
+            }
         }
 
         public async Task receiveReKeying(int random, RLWEPublicKey recPubKey)
@@ -373,7 +603,15 @@ namespace OTRAndroidClient
             initiatorpubKey = recPubKey;
             MessageText.Append("\n[*] Receiver Received Rekeying information from Initiator:");
 
-            proxy.Invoke("receiverReKey", toconnectionID, mypubKey);
+            try
+            {
+                proxy.Invoke("receiverReKey", toconnectionID, mypubKey);
+
+            }
+            catch (Exception ex)
+            {
+                MessageText.Append("Error invoking receiverReKey: " + ex.Message);
+            }
         }
 
         public void endReKey(RLWEPublicKey recPubKey)
@@ -408,7 +646,16 @@ namespace OTRAndroidClient
             gmsskeyPair = gmssgen.GenerateKeyPair();
             MessageText.Append("\n[*] Generated GMSS Keys");
 
-            proxy.Invoke("sendGMSS", toconnectionID, receiverpubKey);
+
+            try
+            {
+                proxy.Invoke("sendGMSS", toconnectionID, gmsskeyPair.PublicKey);
+
+            }
+            catch (Exception ex)
+            {
+                MessageText.Append("Error invoking sendGMSS: " + ex.Message);
+            }
         }
 
         public void setReceiverGMSSPubKey(GMSSPublicKey pubKey)
@@ -416,6 +663,7 @@ namespace OTRAndroidClient
             gmssreceiverPubKey = pubKey;
             MessageText.Append("\n[*] Received receiver GMSS PubKey");
         }
+
 
 
 

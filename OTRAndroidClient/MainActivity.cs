@@ -16,13 +16,17 @@ namespace OTRAndroidClient
 
             SetContentView(Resource.Layout.Main);
 
-            Intent n = new Intent(this, typeof(LoginActivity));
-            StartActivity(n);
-            Finish();
+            //Intent n = new Intent(this, typeof(LoginActivity));
+            //StartActivity(n);
+            //Finish();
             //_loginButton = FindViewById<Button>(Resource.Id.loginButton);
             //_loginButton.Click += LoginButtonOnClick;
-
+            Intent n = new Intent(this, typeof(DemoActivity));
+            StartActivity(n);
+            Finish();
         }
+
+
 
         private void LoginButtonOnClick(object sender, EventArgs eventArgs)
         {
@@ -34,5 +38,6 @@ namespace OTRAndroidClient
             Finish();
         }
     }
+    
 }
 

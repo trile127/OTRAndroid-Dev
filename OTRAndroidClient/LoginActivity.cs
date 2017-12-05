@@ -49,8 +49,8 @@ namespace OTRAndroidClient
             Initialize();
 
             Bundle bundler = new Bundle();
-            bundler.PutString("UserName", "Tri Le");
-            bundler.PutString("Email", "trixuanle@gmail.com");
+            bundler.PutString("UserName", "android");
+            bundler.PutString("Email", "android@gmail.com");
             Intent n = new Intent(this, typeof(ChatActivity));
             n.PutExtra("bundle", bundler);
             StartActivity(n);

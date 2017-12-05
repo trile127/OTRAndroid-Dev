@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent">
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/PrivateChatUser"
-    android:gravity="center"
-    android:textStyle="bold" />
-  <Button
-    android:id="@+id/otrButton"
+    android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text="Init OTR" />
-  <EditText
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/Input" />
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/MessageTextView"
-    android:gravity="center"
-    android:scrollbars="vertical"
-    android:maxLines="100"
-    android:textStyle="bold" />
-  <ListView
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/PrivateMessages" />
+    android:layout_height="fill_parent">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/PrivateChatUser"
+        android:gravity="center"
+        android:textStyle="bold" />
+    <Button
+        android:id="@+id/otrButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Init OTR" />
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Input" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/MessageTextView"
+        android:gravity="center"
+        android:scrollbars="vertical"
+        android:maxLines="100"
+        android:textStyle="bold" />
+    <ListView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/PrivateMessages" />
 </LinearLayout>
