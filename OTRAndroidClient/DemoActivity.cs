@@ -178,27 +178,29 @@ namespace OTRAndroidClient
             SetContentView(Resource.Layout.DemoLayout);
             MessageText = FindViewById<TextView>(Resource.Id.MessageTextView);
             MessageText.MovementMethod = new Android.Text.Method.ScrollingMovementMethod();
+
+            Task.Delay(4000).Wait();
             receiver = new User();
             receiver.name = "Bob";
             initiator = new User();
             initiator.name = "Alice";
             messages = new List<string>();
 
+            InitializeGMSS(receiver);
+            MessageText.Append("\n[*] Memory Usage Before Generating GMSS KeyPair");
+            getDeviceMemoryUsage();
             Timer timer = new Timer();
             timer.Interval = 1; // 1 milliseconds  
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
-            MessageText.Append("\n[*] Memory Usage Before Generating GMSS KeyPair");
-            getDeviceMemoryUsage();
-            InitializeGMSS(receiver);
-            MessageText.Append("\n[*] Memory Usage After Generating GMSS");
-            getDeviceMemoryUsage();
-            timer.Stop();
-            timer.Dispose();
-            MessageText.Append("\nInitialize GMSS Keys Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
-            resetTime();
             InitializeGMSS(initiator);
             exchangePubKeys(initiator, receiver);
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("\n[*] Memory Usage After Generating GMSS");
+            getDeviceMemoryUsage();
+            MessageText.Append("\n\nInitialize GMSS Keys Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
 
             messages.Add("Message 1");
             messages.Add("Message 2");
@@ -207,6 +209,8 @@ namespace OTRAndroidClient
             messages.Add("Message 6");
             messages.Add("Message 7");
 
+            MessageText.Append("\n\n[*] Memory Usage Before OTR Key Exchange");
+            getDeviceMemoryUsage();
             timer = new Timer();
             timer.Interval = 1; // 1 milliseconds  
             timer.Elapsed += Timer_Elapsed;
@@ -216,7 +220,9 @@ namespace OTRAndroidClient
             endOTR(initiator, receiver);
             timer.Stop();
             timer.Dispose();
-            MessageText.Append("Total OTR Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            MessageText.Append("\n[*] Memory Usage After OTR Key Exchange");
+            getDeviceMemoryUsage();
+            MessageText.Append("\nTotal OTR Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
             resetTime();
 
             for (int i = 0; i < messages.Count; i++)
@@ -230,11 +236,14 @@ namespace OTRAndroidClient
                     MessageText.Append("\n[*] Bob decrypted:" + receivingMessage.message);
                     if (i == 0) // Do timer one time
                     {
+                        MessageText.Append("\n\n[*] Memory Usage Before OTR Re-Key");
+                        getDeviceMemoryUsage();
                         timer = new Timer();
                         timer.Interval = 1; // 1 milliseconds  
                         timer.Elapsed += Timer_Elapsed;
                         timer.Start();
                     }
+
                     initReKey(initiator);
                     receiveReKeying(initiator, receiver);
                     endReKey(initiator, receiver);
@@ -243,6 +252,8 @@ namespace OTRAndroidClient
                     {
                         timer.Stop();
                         timer.Dispose();
+                        MessageText.Append("\n[*] Memory Usage After OTR Re-Key");
+                        getDeviceMemoryUsage();
                         MessageText.Append("Total OTR Re-Key Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
                         resetTime();
                     }
@@ -260,11 +271,36 @@ namespace OTRAndroidClient
 
                 }
             }
-            MessageText.Append("\n[*] Memory Usage End of Transmission");
+            //MessageText.Append("\n[*] Memory Usage End of Transmission");
+            //getDeviceMemoryUsage();
+
+            MessageText.Append("\n\n[*] Memory Usage Start of RSA Key Gen");
+            getDeviceMemoryUsage();
+            timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+            DiffieHellman.TestRSA();
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("\nRSA Key Gen Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
+            MessageText.Append("\n[*] Memory Usage End of RSA Key Gen");
             getDeviceMemoryUsage();
 
-
-
+            MessageText.Append("\n\n[*] Memory Usage Start of DHKE");
+            getDeviceMemoryUsage();
+            timer = new Timer();
+            timer.Interval = 1; // 1 milliseconds  
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+            MessageText.Append(DiffieHellman.TestMethod());
+            timer.Stop();
+            timer.Dispose();
+            MessageText.Append("\nTotal DHKE Setup Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            resetTime();
+            MessageText.Append("\n[*] Memory Usage End of DHKE");
+            getDeviceMemoryUsage();
         }
 
         public Message sendMessage(User user, User receiveUser, string message)
@@ -340,7 +376,7 @@ namespace OTRAndroidClient
 
         public void InitializeGMSS(User user)
         {
-            user.gmssencParams = (GMSSParameters)GMSSParamSets.GMSSN2P10.DeepCopy();
+            user.gmssencParams = (GMSSParameters)GMSSParamSets.GMSSN2P20.DeepCopy();
             user.gmssgen = new GMSSKeyGenerator(user.gmssencParams);
             user.gmsskeyPair = user.gmssgen.GenerateKeyPair();
             MessageText.Append("\n[*] " + user.name + "Generated GMSS Keys");
@@ -358,10 +394,10 @@ namespace OTRAndroidClient
         public void initOTR(User user)
         {
             //Start Timer
-            Timer timer = new Timer();
-            timer.Interval = 1; // 1 milliseconds  
-            timer.Elapsed += Timer_Elapsed;
-            timer.Start();
+            //Timer timer = new Timer();
+            //timer.Interval = 1; // 1 milliseconds  
+            //timer.Elapsed += Timer_Elapsed;
+            //timer.Start();
 
             MessageText.Append("\n[*] Memory Usage Before InitRLWE Keys");
             getDeviceMemoryUsage();
@@ -389,15 +425,15 @@ namespace OTRAndroidClient
             MessageText.Append("\n[*] Memory Usage After InitRLWE Keys");
             getDeviceMemoryUsage();
             //Stop Timer
-            timer.Stop();
-            timer.Dispose();
-            MessageText.Append("\nRLWE InitKey RLWE Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
-            resetTime();
+            //timer.Stop();
+            //timer.Dispose();
+            //MessageText.Append("\nRLWE InitKey RLWE Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            //resetTime();
 
-            timer = new Timer();
-            timer.Interval = 1; // 1 milliseconds  
-            timer.Elapsed += Timer_Elapsed;
-            timer.Start();
+            //timer = new Timer();
+            //timer.Interval = 1; // 1 milliseconds  
+            //timer.Elapsed += Timer_Elapsed;
+            //timer.Start();
 
             MessageText.Append("\n[*] Memory Usage Before Generating Signature");
             getDeviceMemoryUsage();
@@ -405,10 +441,10 @@ namespace OTRAndroidClient
             user.keySignature = GMSSSignature(user.gmssencParams, user.gmsskeyPair, hashPubKey);
             MessageText.Append("\n[*] Memory Usage After Generating Signature");
             getDeviceMemoryUsage();
-            timer.Stop();
-            timer.Dispose();
-            MessageText.Append("\nGMSS Signature Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
-            resetTime();
+            //timer.Stop();
+            //timer.Dispose();
+            //MessageText.Append("\nGMSS Signature Generation Time: " + String.Format("{0}:{1:00}:{2:000}", mins, secs, milliseconds));
+            //resetTime();
         }
 
         public void receiverOTR(User user, User receiveUser)
@@ -794,8 +830,8 @@ namespace OTRAndroidClient
                 totalSize = info.TotalMemory();
                 usedSize = totalSize - freeSize;
                 //MessageText.Append("\nGetDeviceInfo - Avail {0} - {1} MB", (int)freeSize, (int)freeSize / 1024 / 1024);
-                MessageText.Append("\nGetDeviceInfo - Used: " + (int)((usedSize & 0xFFFFFFFF) / 1024) + " KB");
-                MessageText.Append("\nGetDeviceInfo - Available: " + (int)((freeSize & 0xFFFFFFFF) / 1024) + " KB");
+                MessageText.Append("\nGetDeviceInfo - Used: " + (int)((usedSize & 0xFFFFFFFF)) + " B");
+                MessageText.Append("\nGetDeviceInfo - Available: " + (int)((freeSize & 0xFFFFFFFF)) + " B");
                 //MessageText.Append("\nGetDeviceInfo - Total {0} - {1} MB", (int)totalSize, (int)totalSize / 1024 / 1024);
             }
             catch (Java.Lang.Exception e)
